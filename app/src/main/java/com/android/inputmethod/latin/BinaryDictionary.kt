@@ -363,8 +363,18 @@ class BinaryDictionary(
                 val app = com.example.VianApplication.instance
                 val nativeLibDir = app?.applicationInfo?.nativeLibraryDir
                 val localLibFile = if (nativeLibDir != null) java.io.File(nativeLibDir, "lib$JNI_LIB_NAME.so") else null
+                val isBundledInApk = try {
+                    val apkPath = app?.applicationInfo?.sourceDir
+                    if (apkPath != null && java.io.File(apkPath).exists()) {
+                        java.util.zip.ZipFile(apkPath).use { zip ->
+                            zip.entries().asSequence().any { it.name.contains("lib$JNI_LIB_NAME.so") }
+                        }
+                    } else false
+                } catch (e: Throwable) {
+                    false
+                }
 
-                if (localLibFile == null || !localLibFile.exists()) {
+                if ((localLibFile == null || !localLibFile.exists()) && !isBundledInApk) {
                     sNativeLoaded = false
                     LogKeeper.logEvent(
                         LogTags.JNI,

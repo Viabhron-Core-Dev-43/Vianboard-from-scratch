@@ -26,3 +26,11 @@ debug.keystore.base64
 .build-outputs/
 reference/
 vianboard/
+
+*.o
+*.d
+build/
+.gradle/
+.cxx/
+obj/
+vianboard_source.zip

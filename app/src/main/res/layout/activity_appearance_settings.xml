@@ -31,9 +31,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Appearance"
+            android:text="Main Layout Customisation"
             android:textColor="#0F172A"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginStart="12dp" />
 
@@ -56,46 +56,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <!-- Subpage Item: Desktop Shortcuts -->
-            <LinearLayout
-                android:id="@+id/cardDesktopShortcuts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:elevation="1dp">
-
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_desktop_shortcuts"
-                    android:contentDescription="Desktop Shortcuts" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Desktop Shortcuts"
-                    android:textColor="#0F172A"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="14dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#94A3B8"
-                    android:textSize="22sp" />
-            </LinearLayout>
 
             <!-- Interactive Live Keyboard Preview -->
             <LinearLayout

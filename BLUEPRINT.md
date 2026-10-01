@@ -216,10 +216,22 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   - Exposed thread-safe `instance` singleton in `VianApplication.kt`.
   - Corrected `onComputeInsets()` in `VianBoardService.kt` to use standard `TOUCHABLE_INSETS_CONTENT` and dynamic `inputViewContainer.top` coordinates.
   - Verified 100% test pass via `gradle :app:testDebugUnitTest` and clean build via `compile_applet`.
-
-
-
-
-
-
-
+- **2026-09-26**: Cached Keyboard Geometry Architecture & HeliBoard Reference Realignment:
+  - Created `KeyboardGeometry`: lightweight immutable cached geometry model calculated once when dimensions, orientation, window insets, or layout configuration change.
+  - Aligned toolbar strip geometry with HeliBoard reference measurements: 40dp strip height anchored at top (y=0), 36dp square anchor button, 36dp square pinned tools, and authentic 3-slot suggestion bar geometry (36% center auto-correct candidate slot with hairline dividers and three-dot indicator coordinates).
+  - Enhanced `KeyData` with precomputed drawing bounds (`topCapBounds`, `iconBounds`, `cornerRadius`, `isSpecialKey`, `labelX`, `labelY`, `hintX`, `hintY`), eliminating per-frame allocations in `onDraw()`.
+  - Streamlined `KeyboardLayout`: introduced `ensureLayout()` with cache validation via `isValid()`, and pre-allocated reusable `KeyData` instances for suggestion and toolbar buttons.
+  - Optimized drawing path in `VianKeyboardView`: `onDraw()` reads cached geometry bounds, precalculated keycap insets, and precalculated icon rectangles via `drawCachedIcon()`.
+  - Decoupled transient events from geometry recalculation: shift/caps toggling, key presses, touch events, space label updates, suggestion updates, toolbar expansion, and incognito mode now update visual states and invalidate canvas without rebuilding geometry.
+  - Added unit test suite in `KeyboardGeometryCacheTest.kt` verifying caching, reuse, dimension/mode triggers, and HeliBoard reference dimensions (33/33 tests passing).
+- **2026-09-26**: HeliBoard Exact Visual Alignment Pass:
+  - Synchronized expand chevron vector drawables (`ic_chevron_right.xml`, `ic_chevron_left.xml`) with HeliBoard's authentic solid Material chevron paths (`M8.59,16.59...` / `M15.41,16.59...`), removing wireframe strokes.
+  - Rendered chevron button with 28dp circular background (`radius = 14.5dp`) centered inside the 36dp square touch target, reproducing HeliBoard's `toolbar_expand_key_background`.
+  - Aligned chevron icon dimensions to 20dp (up from 14dp) and toolbar tool icons to 20dp (up from 18dp).
+  - Standardized toolbar icon spacing to 6dp uniform gap between chevron and tool buttons, and calibrated expanded tray geometry so each tool button has a uniform 36dp touch width without artificial stretching.
+  - Corrected hairline divider height to 24dp (from 16dp) matching HeliBoard's `suggestions_strip_divider.xml` centered in the 40dp strip.
+  - Synchronized suggestion divider rendering to candidate count (0 dividers when empty or 1 word, 1 divider when 2 words, 2 dividers when 3 words).
+  - Introduced `suggestionNormalPaint` with 70% contrast (`alphaObsoleted="70%"`) for side candidates and calibrated 3-dot auto-correct indicator beneath the 16.5sp bold center candidate.
+  - Calibrated keyboard start offset to 3dp below the 40dp toolbar strip.
+  - Preserved cached geometry architecture and zero-allocation drawing in `VianKeyboardView`.
+  - Verified compilation via `compile_applet` (BUILD SUCCESSFUL) and full unit test suite (`:app:testDebugUnitTest`, 33/33 passing).

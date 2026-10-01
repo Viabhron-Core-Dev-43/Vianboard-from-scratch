@@ -61,12 +61,23 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name="com.example.ime.settings.AppearanceSettingsActivity"
+            android:name="com.example.ime.settings.AppearanceActivity"
             android:label="Appearance"
+            android:exported="false" />
+
+        <activity
+            android:name="com.example.ime.settings.MainLayoutCustomizationActivity"
+            android:label="Main Layout Customisation"
+            android:exported="false" />
+
+        <activity
+            android:name="com.example.ime.settings.AppearanceSettingsActivity"
+            android:label="Main Layout Customisation"
             android:exported="false" />
 
         <activity

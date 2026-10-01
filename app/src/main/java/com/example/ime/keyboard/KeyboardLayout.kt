@@ -66,207 +66,334 @@ class KeyboardLayout {
         return result
     }
 
-    fun buildLayout(width: Float, height: Float, theme: KeyboardTheme, density: Float, bottomInsetPx: Float = 0f) {
-        keys.clear()
-        toolbarKeys.clear()
-        if (width <= 0 || height <= 0) return
+    var cachedGeometry: KeyboardGeometry? = null
+        private set
 
-        val horizontalGapPx = theme.horizontalGapDp * density
-        val verticalGapPx = theme.verticalGapDp * density
-        val paddingHorizontalPx = 4f * density
-        val paddingVerticalPx = 4f * density
+    // Pre-allocated, reusable toolbar KeyData items
+    private val anchorKey = KeyData(
+        code = -101,
+        label = "›",
+        type = KeyType.ACTION_EXPAND,
+        weight = 1f
+    )
+    private val suggestionKey0 = KeyData(
+        code = -200,
+        label = "",
+        type = KeyType.SUGGESTION,
+        weight = 1f
+    )
+    private val suggestionKey1 = KeyData(
+        code = -201,
+        label = "",
+        type = KeyType.SUGGESTION,
+        weight = 1f
+    )
+    private val suggestionKey2 = KeyData(
+        code = -202,
+        label = "",
+        type = KeyType.SUGGESTION,
+        weight = 1f
+    )
+    private val pinnedToolKeys = mutableListOf<KeyData>()
+    private val expandedToolKeys = mutableListOf<KeyData>()
 
-        val availableWidth = width - (paddingHorizontalPx * 2)
+    /**
+     * Ensures layout and cached geometry are up-to-date.
+     * Only recalculates geometry when dimensions, insets, mode, or configuration actually change.
+     * Returns true if full geometry was recalculated.
+     */
+    fun ensureLayout(
+        width: Float,
+        height: Float,
+        theme: KeyboardTheme,
+        density: Float,
+        bottomInsetPx: Float = 0f,
+        forceRebuild: Boolean = false
+    ): Boolean {
+        if (width <= 0f || height <= 0f) return false
 
-        // 1. Build Top Toolbar
-        val toolbarHeightPx = theme.toolbarHeightDp * density
-        buildToolbar(paddingHorizontalPx, paddingVerticalPx, availableWidth, toolbarHeightPx, density)
+        val currentGeo = cachedGeometry
+        if (!forceRebuild && currentGeo != null && currentGeo.isValid(
+                width,
+                height,
+                density,
+                bottomInsetPx,
+                mode,
+                theme,
+                pinnedTools.size,
+                expandedTools.size
+            )
+        ) {
+            // Geometry is already up-to-date and retained
+            return false
+        }
 
-        // 2. Build Keyboard Grid
-        val keyboardStartY = paddingVerticalPx + toolbarHeightPx + (2f * density)
-        val availableKeyboardHeight = height - keyboardStartY - paddingVerticalPx - bottomInsetPx
-
+        // Recompute geometry once
         val rowDefinitions = getRowDefinitions(mode, shiftState)
-        val rowCount = rowDefinitions.size
-        val totalVerticalGaps = (rowCount - 1) * verticalGapPx
-        val keyHeight = (availableKeyboardHeight - totalVerticalGaps) / rowCount
+        val newGeo = KeyboardGeometry.calculate(
+            width = width,
+            height = height,
+            density = density,
+            theme = theme,
+            mode = mode,
+            pinnedTools = pinnedTools,
+            expandedTools = expandedTools,
+            bottomInsetPx = bottomInsetPx,
+            rowDefinitions = rowDefinitions
+        )
+        cachedGeometry = newGeo
 
-        var currentY = keyboardStartY
+        // 1. Update pre-allocated anchor key bounds
+        anchorKey.bounds.left = newGeo.anchorKeyBounds.left
+        anchorKey.bounds.top = newGeo.anchorKeyBounds.top
+        anchorKey.bounds.right = newGeo.anchorKeyBounds.right
+        anchorKey.bounds.bottom = newGeo.anchorKeyBounds.bottom
 
-        if (mode == KeyboardMode.CHARACTERS) {
-            val colWidth = (availableWidth - 9f * horizontalGapPx) / 10f
+        anchorKey.iconBounds.left = newGeo.anchorIconBounds.left
+        anchorKey.iconBounds.top = newGeo.anchorIconBounds.top
+        anchorKey.iconBounds.right = newGeo.anchorIconBounds.right
+        anchorKey.iconBounds.bottom = newGeo.anchorIconBounds.bottom
 
-            for (rowIndex in rowDefinitions.indices) {
-                val row = rowDefinitions[rowIndex]
-                var currentX = paddingHorizontalPx
+        // 2. Update pre-allocated suggestion keys bounds
+        suggestionKey0.bounds.left = newGeo.suggestionSlotBounds[0].left
+        suggestionKey0.bounds.top = newGeo.suggestionSlotBounds[0].top
+        suggestionKey0.bounds.right = newGeo.suggestionSlotBounds[0].right
+        suggestionKey0.bounds.bottom = newGeo.suggestionSlotBounds[0].bottom
 
-                when (rowIndex) {
-                    0, 1 -> {
-                        // Row 0 & Row 1: 10 equal columns spanning full width
-                        for (key in row) {
-                            key.bounds.set(currentX, currentY, currentX + colWidth, currentY + keyHeight)
-                            keys.add(key)
-                            currentX += colWidth + horizontalGapPx
-                        }
-                    }
-                    2 -> {
-                        // Row 2: Staggered with half-key spacer on left and right (a-l)
-                        currentX += 0.5f * (colWidth + horizontalGapPx)
-                        for (key in row) {
-                            key.bounds.set(currentX, currentY, currentX + colWidth, currentY + keyHeight)
-                            keys.add(key)
-                            currentX += colWidth + horizontalGapPx
-                        }
-                    }
-                    3 -> {
-                        // Row 3: Shift (1.5x), 7 character keys (1.0x), Delete (1.5x)
-                        val functionalWidth = 1.5f * colWidth + 0.5f * horizontalGapPx
-                        for (keyIndex in row.indices) {
-                            val key = row[keyIndex]
-                            val kWidth = if (keyIndex == 0 || keyIndex == row.lastIndex) functionalWidth else colWidth
-                            key.bounds.set(currentX, currentY, currentX + kWidth, currentY + keyHeight)
-                            keys.add(key)
-                            currentX += kWidth + horizontalGapPx
-                        }
-                    }
-                    4 -> {
-                        // Row 4: ?123 (1.5x), , (1.0x), Space (5.0x), . (1.0x), Enter (1.5x)
-                        val functionalWidth = 1.5f * colWidth + 0.5f * horizontalGapPx
-                        val spaceWidth = 5f * colWidth + 4f * horizontalGapPx
-                        for (key in row) {
-                            val kWidth = when (key.type) {
-                                KeyType.SYMBOLS_TOGGLE, KeyType.ENTER -> functionalWidth
-                                KeyType.SPACE -> spaceWidth
-                                else -> colWidth
-                            }
-                            key.bounds.set(currentX, currentY, currentX + kWidth, currentY + keyHeight)
-                            keys.add(key)
-                            currentX += kWidth + horizontalGapPx
-                        }
+        suggestionKey1.bounds.left = newGeo.suggestionSlotBounds[1].left
+        suggestionKey1.bounds.top = newGeo.suggestionSlotBounds[1].top
+        suggestionKey1.bounds.right = newGeo.suggestionSlotBounds[1].right
+        suggestionKey1.bounds.bottom = newGeo.suggestionSlotBounds[1].bottom
+
+        suggestionKey2.bounds.left = newGeo.suggestionSlotBounds[2].left
+        suggestionKey2.bounds.top = newGeo.suggestionSlotBounds[2].top
+        suggestionKey2.bounds.right = newGeo.suggestionSlotBounds[2].right
+        suggestionKey2.bounds.bottom = newGeo.suggestionSlotBounds[2].bottom
+
+        // 3. Pre-create/update expanded tool keys
+        val toolsToRender = expandedTools.ifEmpty {
+            com.example.ime.toolbar.ToolbarTool.values().filter { it.isDefaultExpanded }
+        }
+        expandedToolKeys.clear()
+        for ((idx, tool) in toolsToRender.withIndex()) {
+            if (idx < newGeo.expandedToolBounds.size) {
+                val tk = KeyData(
+                    code = -300 - idx,
+                    label = "",
+                    type = KeyType.TOOLBAR_TOOL,
+                    weight = 1f
+                ).apply {
+                    this.tool = tool
+                    val src = newGeo.expandedToolBounds[idx]
+                    this.bounds.left = src.left
+                    this.bounds.top = src.top
+                    this.bounds.right = src.right
+                    this.bounds.bottom = src.bottom
+                    if (idx < newGeo.expandedIconBounds.size) {
+                        val isrc = newGeo.expandedIconBounds[idx]
+                        this.iconBounds.left = isrc.left
+                        this.iconBounds.top = isrc.top
+                        this.iconBounds.right = isrc.right
+                        this.iconBounds.bottom = isrc.bottom
                     }
                 }
-                currentY += keyHeight + verticalGapPx
+                expandedToolKeys.add(tk)
             }
-        } else {
-            for (row in rowDefinitions) {
-                val totalWeight = row.sumOf { it.weight.toDouble() }.toFloat()
-                val totalGaps = (row.size - 1) * horizontalGapPx
-                val widthForKeys = availableWidth - totalGaps
+        }
 
-                var currentX = paddingHorizontalPx
-
-                for (key in row) {
-                    val keyWidth = (key.weight / totalWeight) * widthForKeys
-                    key.bounds.set(
-                        currentX,
-                        currentY,
-                        currentX + keyWidth,
-                        currentY + keyHeight
-                    )
-                    keys.add(key)
-                    currentX += keyWidth + horizontalGapPx
+        // 4. Pre-create/update pinned tool keys
+        pinnedToolKeys.clear()
+        for ((idx, tool) in pinnedTools.withIndex()) {
+            if (idx < newGeo.pinnedToolBounds.size) {
+                val tk = KeyData(
+                    code = -400 - idx,
+                    label = "",
+                    type = KeyType.TOOLBAR_TOOL,
+                    weight = 1f
+                ).apply {
+                    this.tool = tool
+                    val src = newGeo.pinnedToolBounds[idx]
+                    this.bounds.left = src.left
+                    this.bounds.top = src.top
+                    this.bounds.right = src.right
+                    this.bounds.bottom = src.bottom
+                    if (idx < newGeo.pinnedIconBounds.size) {
+                        val isrc = newGeo.pinnedIconBounds[idx]
+                        this.iconBounds.left = isrc.left
+                        this.iconBounds.top = isrc.top
+                        this.iconBounds.right = isrc.right
+                        this.iconBounds.bottom = isrc.bottom
+                    }
                 }
+                pinnedToolKeys.add(tk)
+            }
+        }
 
-                currentY += keyHeight + verticalGapPx
+        // 5. Populate keys list with cached bounds and cached drawing metrics
+        keys.clear()
+        var keyIndex = 0
+        val bevelInsetBottomPx = 1.0f * density
+        val icSizePx = 22f * density
+        for (row in rowDefinitions) {
+            for (key in row) {
+                if (keyIndex < newGeo.keyBoundsList.size) {
+                    val srcBounds = newGeo.keyBoundsList[keyIndex]
+                    key.bounds.left = srcBounds.left
+                    key.bounds.top = srcBounds.top
+                    key.bounds.right = srcBounds.right
+                    key.bounds.bottom = srcBounds.bottom
+
+                    key.isSpecialKey = key.type == KeyType.SHIFT ||
+                                       key.type == KeyType.SYMBOLS_TOGGLE ||
+                                       key.type == KeyType.SYMBOLS_MORE_TOGGLE ||
+                                       key.type == KeyType.NUMPAD_TOGGLE ||
+                                       key.type == KeyType.DELETE ||
+                                       key.type == KeyType.ENTER
+                    key.cornerRadius = if (key.isSpecialKey) (key.bounds.bottom - key.bounds.top) / 2f else theme.keyCornerRadiusDp * density
+                    key.topCapBounds.left = key.bounds.left
+                    key.topCapBounds.top = key.bounds.top
+                    key.topCapBounds.right = key.bounds.right
+                    key.topCapBounds.bottom = key.bounds.bottom - bevelInsetBottomPx
+
+                    val keyCenterX = (key.bounds.left + key.bounds.right) / 2f
+                    val keyCenterY = (key.bounds.top + key.bounds.bottom) / 2f
+                    val icLeft = (keyCenterX - (icSizePx / 2f)).toInt()
+                    val icTop = (keyCenterY - (icSizePx / 2f)).toInt()
+                    key.iconBounds.left = icLeft
+                    key.iconBounds.top = icTop
+                    key.iconBounds.right = (icLeft + icSizePx).toInt()
+                    key.iconBounds.bottom = (icTop + icSizePx).toInt()
+                    key.labelX = keyCenterX
+                    key.labelY = keyCenterY
+
+                    if (key.type == KeyType.COMMA || key.type == KeyType.PERIOD) {
+                        key.hintX = keyCenterX + (3.5f * density)
+                        key.hintY = key.bounds.bottom - (4.5f * density)
+                    } else {
+                        key.hintX = key.bounds.right - (4f * density)
+                        key.hintY = key.bounds.top + (11f * density)
+                    }
+
+                    keys.add(key)
+                    keyIndex++
+                }
+            }
+        }
+
+        // Update toolbar scroll bounds
+        toolbarScrollBounds.left = newGeo.toolbarScrollBounds.left
+        toolbarScrollBounds.top = newGeo.toolbarScrollBounds.top
+        toolbarScrollBounds.right = newGeo.toolbarScrollBounds.right
+        toolbarScrollBounds.bottom = newGeo.toolbarScrollBounds.bottom
+        maxToolbarScrollOffset = newGeo.maxToolbarScrollOffset
+        toolbarScrollOffset = toolbarScrollOffset.coerceIn(0f, maxToolbarScrollOffset)
+
+        // Populate toolbar keys using cached geometry
+        syncToolbarKeys()
+        return true
+    }
+
+    fun buildLayout(
+        width: Float,
+        height: Float,
+        theme: KeyboardTheme,
+        density: Float,
+        bottomInsetPx: Float = 0f,
+        forceRebuild: Boolean = false
+    ) {
+        ensureLayout(width, height, theme, density, bottomInsetPx, forceRebuild = forceRebuild)
+    }
+
+    /**
+     * Updates key labels for Shift without recalculating geometry.
+     */
+    fun updateShiftLabels() {
+        if (mode != KeyboardMode.CHARACTERS) return
+        val isCaps = shiftState != ShiftState.OFF
+        val shiftLabel = when (shiftState) {
+            ShiftState.CAPS_LOCK -> "⇪"
+            ShiftState.ON -> "▲"
+            ShiftState.OFF -> "⇧"
+        }
+
+        for (key in keys) {
+            when (key.type) {
+                KeyType.SHIFT -> {
+                    key.label = shiftLabel
+                }
+                KeyType.CHARACTER -> {
+                    val firstChar = key.label.firstOrNull() ?: continue
+                    if (firstChar.isLetter()) {
+                        val newChar = if (isCaps) firstChar.uppercaseChar() else firstChar.lowercaseChar()
+                        key.label = newChar.toString()
+                    }
+                }
+                else -> {}
             }
         }
     }
 
-    private fun buildToolbar(startX: Float, startY: Float, totalWidth: Float, height: Float, density: Float) {
-        val anchorBtnWidth = 36f * density
-        val spacing = 4f * density
-        var currentX = startX
+    /**
+     * Updates only suggestion keys using precalculated geometry slots without rebuilding the keyboard grid.
+     */
+    fun syncSuggestionKeys() {
+        if (isToolbarExpanded) return
 
-        // 1. Left anchor button: Expand/Collapse Chevron OR Incognito Badge
-        val anchorLabel = if (isIncognitoActive) "🕶️" else (if (isToolbarExpanded) "‹" else "›")
-        val anchorKey = KeyData(
-            code = -101,
-            label = anchorLabel,
-            type = KeyType.ACTION_EXPAND,
-            weight = 1f,
-            bounds = RectF(currentX, startY, currentX + anchorBtnWidth, startY + height)
-        )
-        toolbarKeys.add(anchorKey)
-        currentX += anchorBtnWidth + spacing
+        toolbarKeys.removeAll { it.type == KeyType.SUGGESTION }
 
-        // Pinned tools docked on right edge
-        val pinnedToRender = pinnedTools
-        val pinnedBtnWidth = 32f * density
-        val showPinned = pinnedToRender.isNotEmpty() && (!isToolbarExpanded || !hidePinnedWhenExpanded)
-        val rightMargin = 4f * density
-        val rightPinnedTotalWidth = if (showPinned) {
-            (pinnedBtnWidth * pinnedToRender.size) + (spacing * (pinnedToRender.size - 1))
-        } else 0f
-        val rightPinnedStartX = (totalWidth + startX) - rightPinnedTotalWidth - rightMargin
-        val middleAreaWidth = (rightPinnedStartX - currentX - spacing).coerceAtLeast(0f)
-
-        if (isToolbarExpanded) {
-            // EXPANDED TOOLBAR: Ensure touch targets are at least 42dp wide with horizontal scroll
-            val toolsToRender = expandedTools.ifEmpty {
-                com.example.ime.toolbar.ToolbarTool.values().filter { it.isDefaultExpanded }
-            }
-
-            val minToolWidth = 42f * density
-            val naturalWidth = (middleAreaWidth - (spacing * (toolsToRender.size - 1).coerceAtLeast(0))) / toolsToRender.size.coerceAtLeast(1)
-            val toolBtnWidth = naturalWidth.coerceAtLeast(minToolWidth)
-
-            val totalContentWidth = (toolBtnWidth * toolsToRender.size) + (spacing * (toolsToRender.size - 1).coerceAtLeast(0))
-            maxToolbarScrollOffset = (totalContentWidth - middleAreaWidth).coerceAtLeast(0f)
-            toolbarScrollOffset = toolbarScrollOffset.coerceIn(0f, maxToolbarScrollOffset)
-
-            toolbarScrollBounds.set(currentX, startY, currentX + middleAreaWidth, startY + height)
-
-            for ((idx, tool) in toolsToRender.withIndex()) {
-                val itemLeft = currentX + (idx * (toolBtnWidth + spacing))
-                val toolKey = KeyData(
-                    code = -300 - idx,
-                    label = "",
-                    type = KeyType.TOOLBAR_TOOL,
-                    weight = 1f,
-                    bounds = RectF(itemLeft, startY, itemLeft + toolBtnWidth, startY + height)
-                ).apply {
-                    this.tool = tool
+        if (suggestions.isNotEmpty()) {
+            when (suggestions.size) {
+                1 -> {
+                    suggestionKey1.label = suggestions[0]
+                    toolbarKeys.add(suggestionKey1)
                 }
-                toolbarKeys.add(toolKey)
-            }
-        } else {
-            toolbarScrollOffset = 0f
-            maxToolbarScrollOffset = 0f
-            toolbarScrollBounds.set(0f, 0f, 0f, 0f)
-
-            // COLLAPSED TOOLBAR: Suggestions in middle area
-            if (suggestions.isNotEmpty()) {
-                val eachSugWidth = (middleAreaWidth - (spacing * (suggestions.size - 1))) / suggestions.size
-                for ((idx, sug) in suggestions.withIndex()) {
-                    val sugKey = KeyData(
-                        code = -200 - idx,
-                        label = sug,
-                        type = KeyType.SUGGESTION,
-                        weight = 1f,
-                        bounds = RectF(currentX, startY, currentX + eachSugWidth, startY + height)
-                    )
-                    toolbarKeys.add(sugKey)
-                    currentX += eachSugWidth + spacing
+                2 -> {
+                    suggestionKey0.label = suggestions[0]
+                    suggestionKey1.label = suggestions[1]
+                    toolbarKeys.add(suggestionKey0)
+                    toolbarKeys.add(suggestionKey1)
+                }
+                else -> {
+                    suggestionKey0.label = suggestions[0]
+                    suggestionKey1.label = suggestions[1]
+                    suggestionKey2.label = suggestions[2]
+                    toolbarKeys.add(suggestionKey0)
+                    toolbarKeys.add(suggestionKey1)
+                    toolbarKeys.add(suggestionKey2)
                 }
             }
         }
+    }
 
-        // Dock pinned tools on right edge in both collapsed and expanded states
+    /**
+     * Synchronizes toolbar keys between collapsed (suggestions) and expanded (tools) states.
+     */
+    fun syncToolbarKeys() {
+        toolbarKeys.clear()
+
+        // 1. Anchor button (Chevron / Incognito)
+        anchorKey.label = if (isIncognitoActive) "🕶️" else (if (isToolbarExpanded) "‹" else "›")
+        toolbarKeys.add(anchorKey)
+
+        if (isToolbarExpanded) {
+            toolbarKeys.addAll(expandedToolKeys)
+        } else {
+            syncSuggestionKeys()
+        }
+
+        // Pinned tools docked on right edge
+        val showPinned = pinnedToolKeys.isNotEmpty() && (!isToolbarExpanded || !hidePinnedWhenExpanded)
         if (showPinned) {
-            var pinnedX = rightPinnedStartX
-            for ((idx, tool) in pinnedToRender.withIndex()) {
-                val toolKey = KeyData(
-                    code = -400 - idx,
-                    label = "",
-                    type = KeyType.TOOLBAR_TOOL,
-                    weight = 1f,
-                    bounds = RectF(pinnedX, startY, pinnedX + pinnedBtnWidth, startY + height)
-                ).apply {
-                    this.tool = tool
-                }
-                toolbarKeys.add(toolKey)
-                pinnedX += pinnedBtnWidth + spacing
-            }
+            toolbarKeys.addAll(pinnedToolKeys)
+        }
+    }
+
+    fun getRowCountForMode(mode: KeyboardMode): Int {
+        return when (mode) {
+            KeyboardMode.NUMPAD -> 4
+            KeyboardMode.CHARACTERS,
+            KeyboardMode.SYMBOLS_1,
+            KeyboardMode.SYMBOLS_2 -> 5
         }
     }
 

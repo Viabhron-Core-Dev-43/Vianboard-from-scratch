@@ -9,7 +9,7 @@ import com.example.R
 import com.example.ime.keyboard.KeyboardTheme
 import com.example.ime.keyboard.VianKeyboardView
 
-class AppearanceSettingsActivity : Activity() {
+open class AppearanceSettingsActivity : Activity() {
 
     private lateinit var livePreviewKeyboard: VianKeyboardView
     private lateinit var tvHeightLabel: TextView
@@ -49,10 +49,6 @@ class AppearanceSettingsActivity : Activity() {
 
         findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
         findViewById<Button>(R.id.btnReset).setOnClickListener { resetToDefaults() }
-
-        findViewById<android.widget.LinearLayout>(R.id.cardDesktopShortcuts)?.setOnClickListener {
-            startActivity(android.content.Intent(this, DesktopShortcutsSettingsActivity::class.java))
-        }
 
         loadCurrentSettings()
         setupListeners()

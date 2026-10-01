@@ -10,7 +10,7 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "shura.vianboard.jektal"
+    applicationId = "shura.vianboard.yljgep"
     minSdk = 24
     targetSdk = 36
     versionCode = 4100
@@ -18,10 +18,18 @@ android {
 
     resourceConfigurations += listOf("en", "fr")
     ndk {
-      abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+      abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86"))
     }
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+  }
+
+  ndkVersion = "25.2.9519653"
+
+  externalNativeBuild {
+    ndkBuild {
+      path = file("src/main/jni/Android.mk")
+    }
   }
 
   val keystorePath = System.getenv("DEBUG_KEYSTORE_PATH")
@@ -60,6 +68,11 @@ android {
     compose = true
     buildConfig = true
   }
+  packaging {
+    jniLibs {
+      pickFirsts += "**/libjni_latinime.so"
+    }
+  }
   testOptions { unitTests { isIncludeAndroidResources = true } }
   dependenciesInfo {
     includeInApk = false
@@ -88,6 +101,7 @@ dependencies {
   // implementation(libs.reorderable)
   // implementation(libs.colorpicker.compose)
   testImplementation(libs.junit)
+  testImplementation(libs.robolectric)
   debugImplementation(libs.androidx.compose.ui.tooling)
   debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

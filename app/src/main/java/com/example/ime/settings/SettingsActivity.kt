@@ -30,14 +30,9 @@ class SettingsActivity : Activity() {
             startActivity(Intent(this, SetupWizardActivity::class.java))
         }
 
-        // 1. Appearance (Sliders & Desktop Shortcuts subpage)
+        // 1. Appearance (Hub: Main Layout, Desktop Shortcuts, Comma Popup & Toolbar)
         findViewById<LinearLayout>(R.id.cardAppearance).setOnClickListener {
-            startActivity(Intent(this, AppearanceSettingsActivity::class.java))
-        }
-
-        // 2. Layout Customization (Comma popup & Toolbar tools)
-        findViewById<LinearLayout>(R.id.cardLayoutCustomization).setOnClickListener {
-            startActivity(Intent(this, LayoutCustomizationActivity::class.java))
+            startActivity(Intent(this, AppearanceActivity::class.java))
         }
 
         // 3. Voice Input

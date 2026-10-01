@@ -144,7 +144,7 @@
                     android:textSize="18sp" />
             </LinearLayout>
 
-            <!-- 1. Appearance (Sliders & Desktop Shortcuts) -->
+            <!-- 1. Appearance (Hub: Main Layout, Desktop Shortcuts, Comma Key, Toolbar) -->
             <LinearLayout
                 android:id="@+id/cardAppearance"
                 android:layout_width="match_parent"
@@ -182,46 +182,7 @@
                     android:textSize="22sp" />
             </LinearLayout>
 
-            <!-- 2. Layout Customization (Comma Key Popup & Toolbar Tools) -->
-            <LinearLayout
-                android:id="@+id/cardLayoutCustomization"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="1dp"
-                android:layout_marginBottom="12dp">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:tint="#0F172A"
-                    android:contentDescription="Layout Customization" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Layout Customization"
-                    android:textColor="#0F172A"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="14dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#94A3B8"
-                    android:textSize="22sp" />
-            </LinearLayout>
-
-            <!-- 3. Voice Input (Placeholder) -->
+            <!-- 2. Voice Input (Placeholder) -->
             <LinearLayout
                 android:id="@+id/cardVoiceInput"
                 android:layout_width="match_parent"

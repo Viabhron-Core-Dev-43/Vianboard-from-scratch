@@ -215,13 +215,18 @@ open class VianCardModalView @JvmOverloads constructor(
     }
 
     fun syncPrimaryClip() {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
-        val clip = clipboard.primaryClip
-        if (clip != null && clip.itemCount > 0) {
-            val text = clip.getItemAt(0).coerceToText(context).toString().trim()
-            if (text.isNotEmpty()) {
-                storage.addClip(text)
+        try {
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+            val clip = clipboard.primaryClip
+            if (clip != null && clip.itemCount > 0) {
+                val item = clip.getItemAt(0)
+                val text = item?.coerceToText(context)?.toString()?.trim() ?: ""
+                if (text.isNotEmpty()) {
+                    storage.addClip(text)
+                }
             }
+        } catch (e: Exception) {
+            // Defensive guard: background or unattached views may trigger SecurityException on API 29+
         }
     }
 

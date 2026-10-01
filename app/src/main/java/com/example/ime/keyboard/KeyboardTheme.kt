@@ -4,24 +4,24 @@ import android.content.Context
 import android.content.SharedPreferences
 
 data class KeyboardTheme(
-    val backgroundColor: Int = 0xFFECEFF1.toInt(),      // HeliBoard keyboard_background_lxx_light_border (#ECEFF1)
+    val backgroundColor: Int = 0xFFE8EAED.toInt(),      // HeliBoard keyboard_background_lxx_light_border (#E8EAED)
     val keyBackgroundColor: Int = 0xFFFFFFFF.toInt(),   // Crisp white letter/number/space keycaps
-    val actionKeyColor: Int = 0xFFCFD8DC.toInt(),       // HeliBoard key_background_functional_lxx_light_border (#CFD8DC)
-    val keyBottomBevelColor: Int = 0xFFB0BEC5.toInt(),  // HeliBoard key_bottom_bevel_lxx_base (#B0BEC5)
+    val actionKeyColor: Int = 0xFFCCCED5.toInt(),       // HeliBoard key_background_functional_lxx_light_border (#CCCED5)
+    val keyBottomBevelColor: Int = 0xFFA9ABAD.toInt(),  // HeliBoard key_bottom_bevel_lxx_base (#A9ABAD)
     val actionKeyBevelColor: Int = 0xFF90A4AE.toInt(),  // HeliBoard functional key bevel (#90A4AE)
     val enterKeyColor: Int = 0xFF455A64.toInt(),        // HeliBoard enter key (#455A64)
-    val accentColor: Int = 0xFF0284C7.toInt(),          // Sky 600
-    val textColor: Int = 0xFF0F172A.toInt(),            // High contrast text
+    val accentColor: Int = 0xFF1A73E8.toInt(),          // HeliBoard highlight_color_lxx_light (#1A73E8)
+    val textColor: Int = 0xFF37474F.toInt(),            // HeliBoard key_text_color_lxx_light (#37474F)
     val enterTextColor: Int = 0xFFFFFFFF.toInt(),       // White icon/text on Enter
-    val hintColor: Int = 0xFF64748B.toInt(),            // Slate 500 hints
+    val hintColor: Int = 0xB337474F.toInt(),            // HeliBoard key_hint_letter_color_lxx_light (#B337474F)
     val borderColor: Int = 0x24000000,                  // Subtle key border matching HeliBoard
     val pressedKeyColor: Int = 0xFFCBD5E1.toInt(),      // Pressed state
     val popupBackgroundColor: Int = 0xFFCBD5E1.toInt(),  // Popup bubble
-    val popupTextColor: Int = 0xFF0F172A.toInt(),
+    val popupTextColor: Int = 0xFF37474F.toInt(),
     
     // Sliders
     val keyHeightDp: Float = 54f,
-    val toolbarHeightDp: Float = 36f,
+    val toolbarHeightDp: Float = 40f,
     val keyCornerRadiusDp: Float = 10f,
     val borderWidthDp: Float = 1f,                      // 1dp border by default matching HeliBoard
     val horizontalGapDp: Float = 4f,
@@ -44,8 +44,8 @@ data class KeyboardTheme(
         const val KEY_SHOW_HINTS = "key_show_hints"
 
         fun calculateActionKeyColor(grayProgress: Int): Int {
-            // 0 = #F1F3F4, 40 = #CFD8DC (HeliBoard functional key), 100 = #78909C (darker grey-slate)
-            if (grayProgress == 40) return 0xFFCFD8DC.toInt()
+            // 0 = #F1F3F4, 40 = #CCCED5 (HeliBoard functional key), 100 = #78909C (darker grey-slate)
+            if (grayProgress == 40) return 0xFFCCCED5.toInt()
             val factor = grayProgress.coerceIn(0, 100) / 100f
             val startR = 241; val startG = 243; val startB = 244
             val endR = 120; val endG = 144; val endB = 156

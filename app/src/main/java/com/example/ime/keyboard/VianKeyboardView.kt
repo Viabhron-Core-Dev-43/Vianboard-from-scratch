@@ -24,11 +24,18 @@ class VianKeyboardView @JvmOverloads constructor(
 
     var theme: KeyboardTheme = KeyboardTheme.loadFromPrefs(context)
         set(value) {
+            val oldTheme = field
             field = value
             updatePaints()
-            val density = resources.displayMetrics.density
-            layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
-            requestLayout()
+            val dimensionsChanged = oldTheme.keyHeightDp != value.keyHeightDp ||
+                                    oldTheme.toolbarHeightDp != value.toolbarHeightDp ||
+                                    oldTheme.horizontalGapDp != value.horizontalGapDp ||
+                                    oldTheme.verticalGapDp != value.verticalGapDp ||
+                                    oldTheme.keyCornerRadiusDp != value.keyCornerRadiusDp
+            if (dimensionsChanged) {
+                ensureGeometry(forceRebuild = true)
+                requestLayout()
+            }
             invalidate()
         }
 
@@ -49,6 +56,7 @@ class VianKeyboardView @JvmOverloads constructor(
     var onSuggestionLongClick: ((KeyData, String, Int) -> Unit)? = null
     var onSpaceLongClick: ((KeyData) -> Unit)? = null
     var onLayoutUpdated: ((List<KeyData>, Int, Int) -> Unit)? = null
+    var onModeChanged: ((KeyboardMode) -> Unit)? = null
 
     // Lite Mode toggle (Phase 3.2): Disables gesture trajectory processing
     var isLiteMode: Boolean = false
@@ -101,11 +109,18 @@ class VianKeyboardView @JvmOverloads constructor(
     }
     private val toolbarTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT
+        typeface = Typeface.create("sans-serif", Typeface.NORMAL)
     }
     private val suggestionBoldPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT_BOLD
+        typeface = Typeface.create("sans-serif", Typeface.BOLD)
+    }
+    private val suggestionNormalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+    }
+    private val suggestionDotsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
     }
 
     // Vector Icon Paints
@@ -307,7 +322,7 @@ class VianKeyboardView @JvmOverloads constructor(
         actionKeyBevelPaint.color = theme.actionKeyBevelColor
         enterKeyBevelPaint.color = 0xFF263238.toInt()
 
-        suggestionDividerPaint.color = (theme.textColor and 0x00FFFFFF) or 0x22000000
+        suggestionDividerPaint.color = (theme.textColor and 0x00FFFFFF) or 0x26000000
         suggestionDividerPaint.strokeWidth = 1f * density
 
         borderPaint.color = theme.borderColor
@@ -327,9 +342,17 @@ class VianKeyboardView @JvmOverloads constructor(
 
         toolbarTextPaint.color = theme.textColor
         toolbarTextPaint.textSize = 14.5f * density
+        toolbarTextPaint.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
 
         suggestionBoldPaint.color = theme.textColor
-        suggestionBoldPaint.textSize = 15f * density
+        suggestionBoldPaint.textSize = 17f * density
+        suggestionBoldPaint.typeface = Typeface.create("sans-serif", Typeface.BOLD)
+
+        suggestionNormalPaint.color = (theme.textColor and 0x00FFFFFF) or 0xB3000000.toInt()
+        suggestionNormalPaint.textSize = 15f * density
+        suggestionNormalPaint.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+
+        suggestionDotsPaint.color = (theme.textColor and 0x00FFFFFF) or 0x80000000.toInt()
 
         iconStrokePaint.color = theme.textColor
         iconStrokePaint.strokeWidth = 2.2f * density
@@ -347,13 +370,23 @@ class VianKeyboardView @JvmOverloads constructor(
         reloadToolbarConfiguration()
     }
 
+    fun ensureGeometry(forceRebuild: Boolean = false): Boolean {
+        if (width <= 0 || height <= 0) return false
+        val density = resources.displayMetrics.density
+        val changed = layout.ensureLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx, forceRebuild)
+        if (changed) {
+            onLayoutUpdated?.invoke(layout.keys, width, height)
+        }
+        return changed
+    }
+
     fun setMode(newMode: KeyboardMode) {
         if (layout.mode != newMode) {
             layout.mode = newMode
-            val density = resources.displayMetrics.density
             requestLayout()
-            layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
+            ensureGeometry(forceRebuild = true)
             invalidate()
+            onModeChanged?.invoke(newMode)
         }
     }
 
@@ -361,34 +394,46 @@ class VianKeyboardView @JvmOverloads constructor(
         layout.pinnedTools = toolbarPrefs.getPinnedTools()
         layout.expandedTools = toolbarPrefs.getExpandedTools()
         layout.hidePinnedWhenExpanded = toolbarPrefs.hidePinnedWhenExpanded
-        val density = resources.displayMetrics.density
-        layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
+        ensureGeometry(forceRebuild = true)
+        invalidate()
+    }
+
+    fun toggleToolbarExpand() {
+        layout.isToolbarExpanded = !layout.isToolbarExpanded
+        layout.syncToolbarKeys()
         invalidate()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val density = resources.displayMetrics.density
-        val rowCount = if (layout.mode == KeyboardMode.NUMPAD) 4 else 5
+        val rowCount = layout.getRowCountForMode(layout.mode)
+        val verticalGapPx = theme.verticalGapDp * density
         val rowsTotalHeight = (theme.keyHeightDp * rowCount * density)
+        val totalVerticalGaps = (rowCount - 1).coerceAtLeast(0) * verticalGapPx
         val toolbarHeight = (theme.toolbarHeightDp * density)
-        val paddingHeight = (12f * density)
-        // Fixed overall keyboard container height based on user keyHeightDp + toolbar + insets.
-        // The verticalGapDp slider adjusts internal spacing between rows inside the keyboard without altering total height.
-        val totalCalculatedHeight = (rowsTotalHeight + toolbarHeight + paddingHeight + bottomNavInsetPx).toInt()
-        val height = totalCalculatedHeight.coerceAtLeast((260 * density).toInt())
+        val paddingVPx = KeyboardGeometry.HELIBOARD_PADDING_DP * density
+        // True dynamic keyboard height: toolbar + verticalGap + rows + gaps between rows + padding + insets
+        val totalCalculatedHeight = (toolbarHeight + verticalGapPx + rowsTotalHeight + totalVerticalGaps + (paddingVPx * 2f) + bottomNavInsetPx).toInt()
+        val height = totalCalculatedHeight.coerceAtLeast((180 * density).toInt())
         setMeasuredDimension(width, height)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         val density = resources.displayMetrics.density
-        layout.buildLayout(w.toFloat(), h.toFloat(), theme, density, bottomNavInsetPx)
-        onLayoutUpdated?.invoke(layout.keys, w, h)
+        val changed = layout.ensureLayout(w.toFloat(), h.toFloat(), theme, density, bottomNavInsetPx)
+        if (changed) {
+            onLayoutUpdated?.invoke(layout.keys, w, h)
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (layout.cachedGeometry == null) {
+            ensureGeometry()
+        }
+        val geo = layout.cachedGeometry ?: return
         val density = resources.displayMetrics.density
         val cornerRadius = theme.keyCornerRadiusDp * density
         val hasBorder = theme.borderWidthDp > 0
@@ -398,108 +443,119 @@ class VianKeyboardView @JvmOverloads constructor(
 
         // 2. Draw Top Toolbar Items
         if (layout.isToolbarExpanded && layout.toolbarScrollBounds.width() > 0) {
-            // A. Draw Anchor Key first (fixed, non-scrolling)
+            // A. Draw Anchor Key first (fixed, non-scrolling, 36dp square with 29dp circular background)
             val anchorKey = layout.toolbarKeys.firstOrNull { it.type == KeyType.ACTION_EXPAND }
             if (anchorKey != null) {
+                val cx = (anchorKey.bounds.left + anchorKey.bounds.right) / 2f
+                val cy = (anchorKey.bounds.top + anchorKey.bounds.bottom) / 2f
+                val bgCircleRadius = 14.5f * density
                 val bgPaint = if (anchorKey.isPressed) pressedKeyPaint else actionKeyPaint
-                val circleDiameter = 28f * density
-                val circleLeft = anchorKey.bounds.left + (4f * density)
-                val circleTop = anchorKey.bounds.centerY() - (circleDiameter / 2f)
-                tempRectF.set(circleLeft, circleTop, circleLeft + circleDiameter, circleTop + circleDiameter)
-                val anchorRadius = circleDiameter / 2f
-                canvas.drawRoundRect(tempRectF, anchorRadius, anchorRadius, bgPaint)
-                if (layout.isIncognitoActive) {
-                    drawVectorIcon(canvas, tempRectF, R.drawable.sym_keyboard_incognito_lxx, 14f * density, theme.textColor)
-                } else {
-                    val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right
-                    drawVectorIcon(canvas, tempRectF, chevronRes, 13f * density, theme.textColor)
-                }
+                canvas.drawCircle(cx, cy, bgCircleRadius, bgPaint)
+                val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right
+                val iconRes = if (layout.isIncognitoActive) R.drawable.sym_keyboard_incognito_lxx else chevronRes
+                drawCachedIcon(canvas, anchorKey.iconBounds, iconRes, theme.textColor)
             }
 
             // B. Clip and translate scrollable tools tray (tools in middle)
             canvas.save()
-            canvas.clipRect(layout.toolbarScrollBounds)
+            canvas.clipRect(geo.toolbarScrollBounds)
             canvas.translate(-layout.toolbarScrollOffset, 0f)
 
             for (key in layout.toolbarKeys) {
                 if (key.code !in -300 downTo -399) continue
+                val toolCx = (key.bounds.left + key.bounds.right) / 2f
+                val toolCy = (key.bounds.top + key.bounds.bottom) / 2f
                 if (key.isPressed) {
-                    val toolRadius = key.bounds.height() / 2f
-                    canvas.drawRoundRect(key.bounds, toolRadius, toolRadius, pressedKeyPaint)
+                    canvas.drawCircle(toolCx, toolCy, 14.5f * density, pressedKeyPaint)
                 }
 
                 if (key.type == KeyType.TOOLBAR_TOOL) {
                     key.tool?.let { tool ->
-                        drawVectorIcon(canvas, key.bounds, tool.iconResId, 18f * density, theme.textColor)
+                        drawCachedIcon(canvas, key.iconBounds, tool.iconResId, theme.textColor)
                     }
                 } else {
-                    val textY = key.bounds.centerY() - ((toolbarTextPaint.descent() + toolbarTextPaint.ascent()) / 2)
-                    canvas.drawText(key.label, key.bounds.centerX(), textY, toolbarTextPaint)
+                    val textY = toolCy - ((toolbarTextPaint.descent() + toolbarTextPaint.ascent()) / 2)
+                    canvas.drawText(key.label, toolCx, textY, toolbarTextPaint)
                 }
             }
             canvas.restore()
 
-            // C. Draw docked pinned tools (fixed on right edge)
+            // C. Draw docked pinned tools (fixed on right edge, 36dp square vertically centered)
             for (key in layout.toolbarKeys) {
                 if (key.code !in -400 downTo -499) continue
+                val toolCx = (key.bounds.left + key.bounds.right) / 2f
+                val toolCy = (key.bounds.top + key.bounds.bottom) / 2f
                 if (key.isPressed) {
-                    val toolRadius = key.bounds.height() / 2f
-                    canvas.drawRoundRect(key.bounds, toolRadius, toolRadius, pressedKeyPaint)
+                    canvas.drawCircle(toolCx, toolCy, 14.5f * density, pressedKeyPaint)
                 }
                 if (key.type == KeyType.TOOLBAR_TOOL) {
                     key.tool?.let { tool ->
-                        drawVectorIcon(canvas, key.bounds, tool.iconResId, 18f * density, theme.textColor)
+                        drawCachedIcon(canvas, key.iconBounds, tool.iconResId, theme.textColor)
                     }
                 }
             }
         } else {
             // Draw subtle slot dividers for suggestion bar matching HeliBoard
-            val anchorKey = layout.toolbarKeys.firstOrNull { it.type == KeyType.ACTION_EXPAND }
-            val firstPinnedKey = layout.toolbarKeys.firstOrNull { it.code in -400 downTo -499 }
-            val middleLeft = (anchorKey?.bounds?.right ?: (40f * density)) + (4f * density)
-            val middleRight = (firstPinnedKey?.bounds?.left ?: (width - 40f * density)) - (4f * density)
-            if (middleRight > middleLeft) {
-                val middleWidth = middleRight - middleLeft
-                val slotWidth = middleWidth / 3f
-                val centerY = anchorKey?.bounds?.centerY() ?: (4f * density + (theme.toolbarHeightDp * density / 2f))
-                val divHalfH = 7f * density
-                val divY1 = centerY - divHalfH
-                val divY2 = centerY + divHalfH
-                val divX1 = middleLeft + slotWidth
-                val divX2 = middleLeft + (slotWidth * 2f)
-                canvas.drawLine(divX1, divY1, divX1, divY2, suggestionDividerPaint)
-                canvas.drawLine(divX2, divY1, divX2, divY2, suggestionDividerPaint)
+            if (layout.suggestions.size >= 2) {
+                canvas.drawLine(geo.divider1X, geo.dividerTopY, geo.divider1X, geo.dividerBottomY, suggestionDividerPaint)
+            }
+            if (layout.suggestions.size >= 3) {
+                canvas.drawLine(geo.divider2X, geo.dividerTopY, geo.divider2X, geo.dividerBottomY, suggestionDividerPaint)
             }
 
             for (key in layout.toolbarKeys) {
                 if (key.type == KeyType.ACTION_EXPAND) {
+                    val cx = (key.bounds.left + key.bounds.right) / 2f
+                    val cy = (key.bounds.top + key.bounds.bottom) / 2f
+                    val bgCircleRadius = 14.5f * density
                     val bgPaint = if (key.isPressed) pressedKeyPaint else actionKeyPaint
-                    val circleDiameter = 28f * density
-                    val circleLeft = key.bounds.left + (4f * density)
-                    val circleTop = key.bounds.centerY() - (circleDiameter / 2f)
-                    tempRectF.set(circleLeft, circleTop, circleLeft + circleDiameter, circleTop + circleDiameter)
-                    val anchorRadius = circleDiameter / 2f
-                    canvas.drawRoundRect(tempRectF, anchorRadius, anchorRadius, bgPaint)
-                    if (layout.isIncognitoActive) {
-                        drawVectorIcon(canvas, tempRectF, R.drawable.sym_keyboard_incognito_lxx, 14f * density, theme.textColor)
-                    } else {
-                        val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right
-                        drawVectorIcon(canvas, tempRectF, chevronRes, 13f * density, theme.textColor)
-                    }
+                    canvas.drawCircle(cx, cy, bgCircleRadius, bgPaint)
+                    val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right
+                    val iconRes = if (layout.isIncognitoActive) R.drawable.sym_keyboard_incognito_lxx else chevronRes
+                    drawCachedIcon(canvas, key.iconBounds, iconRes, theme.textColor)
                 } else if (key.type == KeyType.TOOLBAR_TOOL) {
+                    val toolCx = (key.bounds.left + key.bounds.right) / 2f
+                    val toolCy = (key.bounds.top + key.bounds.bottom) / 2f
                     if (key.isPressed) {
-                        val toolRadius = key.bounds.height() / 2f
-                        canvas.drawRoundRect(key.bounds, toolRadius, toolRadius, pressedKeyPaint)
+                        canvas.drawCircle(toolCx, toolCy, 14.5f * density, pressedKeyPaint)
                     }
                     key.tool?.let { tool ->
-                        drawVectorIcon(canvas, key.bounds, tool.iconResId, 18f * density, theme.textColor)
+                        drawCachedIcon(canvas, key.iconBounds, tool.iconResId, theme.textColor)
                     }
                 } else if (key.type == KeyType.SUGGESTION) {
-                    val bgPaint = if (key.isPressed) pressedKeyPaint else toolbarBackgroundPaint
-                    canvas.drawRoundRect(key.bounds, 8f * density, 8f * density, bgPaint)
-                    val paintToUse = if (key.code == -201) suggestionBoldPaint else toolbarTextPaint
-                    val textY = key.bounds.centerY() - ((paintToUse.descent() + paintToUse.ascent()) / 2)
-                    canvas.drawText(key.label, key.bounds.centerX(), textY, paintToUse)
+                    if (key.isPressed) {
+                        canvas.drawRoundRect(key.bounds, 6f * density, 6f * density, pressedKeyPaint)
+                    }
+
+                    val isCenterCandidate = key.code == -201
+                    val paintToUse = if (isCenterCandidate) suggestionBoldPaint else suggestionNormalPaint
+
+                    // Ellipsize candidate label gracefully if it exceeds available slot width
+                    val maxTextWidth = (key.bounds.right - key.bounds.left) - (12f * density)
+                    val displayLabel = if (maxTextWidth > 0f && paintToUse.measureText(key.label) > maxTextWidth) {
+                        android.text.TextUtils.ellipsize(
+                            key.label,
+                            android.text.TextPaint(paintToUse),
+                            maxTextWidth,
+                            android.text.TextUtils.TruncateAt.END
+                        ).toString()
+                    } else {
+                        key.label
+                    }
+
+                    // For center candidate, offset text slightly upward to leave balanced room for the 3 dots
+                    val yOffset = if (isCenterCandidate) (-1.5f * density) else 0f
+                    val keyCenterY = (key.bounds.top + key.bounds.bottom) / 2f
+                    val keyCenterX = (key.bounds.left + key.bounds.right) / 2f
+                    val textY = keyCenterY - ((paintToUse.descent() + paintToUse.ascent()) / 2f) + yOffset
+                    canvas.drawText(displayLabel, keyCenterX, textY, paintToUse)
+
+                    // Draw HeliBoard's authentic three-dot auto-correct indicator beneath the center word
+                    if (isCenterCandidate && key.label.isNotEmpty()) {
+                        canvas.drawCircle(keyCenterX - geo.centerDotSpacing, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
+                        canvas.drawCircle(keyCenterX, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
+                        canvas.drawCircle(keyCenterX + geo.centerDotSpacing, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
+                    }
                 }
             }
         }
@@ -516,21 +572,7 @@ class VianKeyboardView @JvmOverloads constructor(
                 else -> keyBackgroundPaint
             }
 
-            // Determine corner radius: special functional keys are pill/stadium curves matching HeliBoard Rounded Base Border
-            val isSpecialKey = key.type == KeyType.SHIFT ||
-                               key.type == KeyType.SYMBOLS_TOGGLE ||
-                               key.type == KeyType.SYMBOLS_MORE_TOGGLE ||
-                               key.type == KeyType.NUMPAD_TOGGLE ||
-                               key.type == KeyType.DELETE ||
-                               key.type == KeyType.ENTER
-
-            val currentRadius = if (isSpecialKey) {
-                key.bounds.height() / 2f
-            } else {
-                10f * density
-            }
-
-            val bevelInsetBottomPx = 1.0f * density
+            val currentRadius = key.cornerRadius
 
             if (key.isPressed) {
                 // Key pressed: flat depressed surface
@@ -544,20 +586,14 @@ class VianKeyboardView @JvmOverloads constructor(
                 }
                 canvas.drawRoundRect(key.bounds, currentRadius, currentRadius, bevelPaint)
 
-                // 2. Top keycap surface inset at bottom by 1dp
-                tempRectF.set(
-                    key.bounds.left,
-                    key.bounds.top,
-                    key.bounds.right,
-                    key.bounds.bottom - bevelInsetBottomPx
-                )
-                canvas.drawRoundRect(tempRectF, currentRadius, currentRadius, currentBgPaint)
+                // 2. Top keycap surface inset at bottom by 1dp (precalculated in key.topCapBounds)
+                canvas.drawRoundRect(key.topCapBounds, currentRadius, currentRadius, currentBgPaint)
             }
 
             // Key label or custom vector icon
             when (key.type) {
                 KeyType.DELETE -> {
-                    drawVectorIcon(canvas, key.bounds, R.drawable.sym_keyboard_delete_rounded, 22f * density, theme.textColor)
+                    drawCachedIcon(canvas, key.iconBounds, R.drawable.sym_keyboard_delete_rounded, theme.textColor)
                 }
                 KeyType.SHIFT -> {
                     val (iconRes, tint) = when (layout.shiftState) {
@@ -565,10 +601,10 @@ class VianKeyboardView @JvmOverloads constructor(
                         ShiftState.ON -> Pair(R.drawable.sym_keyboard_shift_rounded, theme.accentColor)
                         ShiftState.CAPS_LOCK -> Pair(R.drawable.sym_keyboard_shift_lock_rounded, theme.accentColor)
                     }
-                    drawVectorIcon(canvas, key.bounds, iconRes, 22f * density, tint)
+                    drawCachedIcon(canvas, key.iconBounds, iconRes, tint)
                 }
                 KeyType.ENTER -> {
-                    drawVectorIcon(canvas, key.bounds, R.drawable.sym_keyboard_return_rounded, 22f * density, theme.enterTextColor)
+                    drawCachedIcon(canvas, key.iconBounds, R.drawable.sym_keyboard_return_rounded, theme.enterTextColor)
                 }
                 else -> {
                     val paintToUse = when {
@@ -590,24 +626,16 @@ class VianKeyboardView @JvmOverloads constructor(
                             lineY += (12f * density)
                         }
                     } else {
-                        val textY = key.bounds.centerY() - ((paintToUse.descent() + paintToUse.ascent()) / 2)
-                        canvas.drawText(key.label, key.bounds.centerX(), textY, paintToUse)
+                        val textY = key.labelY - ((paintToUse.descent() + paintToUse.ascent()) / 2)
+                        canvas.drawText(key.label, key.labelX, textY, paintToUse)
                     }
                 }
             }
 
-            // Hint label (top right corner or bottom center-right for comma and period)
+            // Hint label (using precalculated hintX, hintY)
             if (theme.showHints && key.hintLabel != null) {
-                if (key.type == KeyType.COMMA || key.type == KeyType.PERIOD) {
-                    val hintX = key.bounds.centerX() + (3.5f * density)
-                    val hintY = key.bounds.bottom - (4.5f * density)
-                    canvas.drawText(key.hintLabel, hintX, hintY, hintPaint)
-                } else if (key.type == KeyType.ENTER || key.type == KeyType.SPACE) {
-                    // Suppress hint label on Space and Enter
-                } else {
-                    val hintX = key.bounds.right - (4f * density)
-                    val hintY = key.bounds.top + (11f * density)
-                    canvas.drawText(key.hintLabel, hintX, hintY, hintPaint)
+                if (key.type != KeyType.ENTER && key.type != KeyType.SPACE) {
+                    canvas.drawText(key.hintLabel, key.hintX, key.hintY, hintPaint)
                 }
             }
         }
@@ -764,34 +792,26 @@ class VianKeyboardView @JvmOverloads constructor(
                     ShiftState.CAPS_LOCK -> ShiftState.OFF
                 }
                 lastShiftPressTime = now
-                val density = resources.displayMetrics.density
-                layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
+                layout.updateShiftLabels()
                 invalidate()
             }
 
             KeyType.SYMBOLS_TOGGLE -> {
-                layout.mode = when (layout.mode) {
+                val newMode = when (layout.mode) {
                     KeyboardMode.CHARACTERS -> KeyboardMode.SYMBOLS_1
                     KeyboardMode.NUMPAD -> KeyboardMode.CHARACTERS
                     else -> KeyboardMode.CHARACTERS
                 }
-                val density = resources.displayMetrics.density
-                layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
-                invalidate()
+                setMode(newMode)
             }
 
             KeyType.SYMBOLS_MORE_TOGGLE -> {
-                layout.mode = if (layout.mode == KeyboardMode.SYMBOLS_1) KeyboardMode.SYMBOLS_2 else KeyboardMode.SYMBOLS_1
-                val density = resources.displayMetrics.density
-                layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
-                invalidate()
+                val newMode = if (layout.mode == KeyboardMode.SYMBOLS_1) KeyboardMode.SYMBOLS_2 else KeyboardMode.SYMBOLS_1
+                setMode(newMode)
             }
 
             KeyType.NUMPAD_TOGGLE -> {
-                layout.mode = KeyboardMode.NUMPAD
-                val density = resources.displayMetrics.density
-                layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
-                invalidate()
+                setMode(KeyboardMode.NUMPAD)
             }
 
             KeyType.TOOLBAR_TOOL -> {
@@ -824,8 +844,7 @@ class VianKeyboardView @JvmOverloads constructor(
                 // Auto-reset Shift if single capitalized letter typed
                 if (layout.shiftState == ShiftState.ON && key.type == KeyType.CHARACTER) {
                     layout.shiftState = ShiftState.OFF
-                    val density = resources.displayMetrics.density
-                    layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
+                    layout.updateShiftLabels()
                     invalidate()
                 }
             }
@@ -959,6 +978,15 @@ class VianKeyboardView @JvmOverloads constructor(
         canvas.drawPath(pathHelper, enterIconStrokePaint)
     }
 
+    private fun drawCachedIcon(canvas: Canvas, iconBounds: android.graphics.Rect, resId: Int, tintColor: Int) {
+        val drawable = iconCache.getOrPut(resId) {
+            ContextCompat.getDrawable(context, resId)?.mutate() ?: return
+        }
+        drawable.bounds = iconBounds
+        drawable.setTint(tintColor)
+        drawable.draw(canvas)
+    }
+
     private fun drawVectorIcon(canvas: Canvas, bounds: RectF, resId: Int, sizePx: Float, tintColor: Int) {
         val drawable = iconCache.getOrPut(resId) {
             ContextCompat.getDrawable(context, resId)?.mutate() ?: return
@@ -975,10 +1003,7 @@ class VianKeyboardView @JvmOverloads constructor(
     fun updateSuggestions(newSuggestions: List<String>) {
         if (layout.suggestions != newSuggestions) {
             layout.suggestions = newSuggestions
-            if (width > 0 && height > 0) {
-                val density = resources.displayMetrics.density
-                layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
-            }
+            layout.syncSuggestionKeys()
             invalidate()
         }
     }
@@ -986,9 +1011,9 @@ class VianKeyboardView @JvmOverloads constructor(
     fun updateSpaceLabel(label: String) {
         if (layout.spaceLabel != label) {
             layout.spaceLabel = label
-            if (width > 0 && height > 0) {
-                val density = resources.displayMetrics.density
-                layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
+            val spaceKey = layout.keys.firstOrNull { it.type == KeyType.SPACE }
+            if (spaceKey != null) {
+                spaceKey.label = label
             }
             invalidate()
         }
@@ -1001,12 +1026,7 @@ class VianKeyboardView @JvmOverloads constructor(
     fun demoteColdSurfaces() {
         popupWindow.dismiss()
         if (layout.mode != KeyboardMode.CHARACTERS) {
-            layout.mode = KeyboardMode.CHARACTERS
-            if (width > 0 && height > 0) {
-                val density = resources.displayMetrics.density
-                layout.buildLayout(width.toFloat(), height.toFloat(), theme, density, bottomNavInsetPx)
-            }
-            invalidate()
+            setMode(KeyboardMode.CHARACTERS)
         }
     }
 }

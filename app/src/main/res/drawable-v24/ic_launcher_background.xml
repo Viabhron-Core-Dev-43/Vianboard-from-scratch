@@ -1,24 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="4320"
-    android:viewportHeight="4320">
-  <path
-      android:pathData="M0,0L4320,0L4320,4320L0,4320Z"
-      android:strokeLineJoin="round"
-      android:strokeWidth="0"
-      android:strokeColor="#00000000">
-    <aapt:attr name="android:fillColor">
-      <gradient 
-          android:startX="22.1"
-          android:startY="35.1"
-          android:endX="4318.7"
-          android:endY="4326.4"
-          android:type="linear">
-        <item android:offset="0" android:color="#FFCB2852"/>
-        <item android:offset="1" android:color="#FF7473E4"/>
-      </gradient>
-    </aapt:attr>
-  </path>
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Deep Vibrant Sky Blue Base -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <!-- Ambient Sky Gradient Layer (Deep Top-Left to Radiant Bottom-Right) -->
+    <path
+        android:fillColor="#0369A1"
+        android:pathData="M0,0 L108,0 L0,108 Z" />
+
+    <path
+        android:fillColor="#0EA5E9"
+        android:pathData="M108,0 L108,108 L0,108 Z" />
+
+    <!-- Central Electric Radial Glow -->
+    <path
+        android:fillColor="#1A38BDF8"
+        android:pathData="M54,20 A34,34 0 1,0 54,88 A34,34 0 1,0 54,20 Z" />
+
+    <!-- Organic Curved Electric Grid Lines (Horizontal) -->
+    <path
+        android:pathData="M0,18 Q54,22 108,18"
+        android:strokeWidth="0.8"
+        android:strokeColor="#40BAE6FD" />
+    <path
+        android:pathData="M0,36 Q54,40 108,36"
+        android:strokeWidth="0.8"
+        android:strokeColor="#50BAE6FD" />
+    <path
+        android:pathData="M0,54 Q54,58 108,54"
+        android:strokeWidth="0.9"
+        android:strokeColor="#60BAE6FD" />
+    <path
+        android:pathData="M0,72 Q54,68 108,72"
+        android:strokeWidth="0.8"
+        android:strokeColor="#50BAE6FD" />
+    <path
+        android:pathData="M0,90 Q54,86 108,90"
+        android:strokeWidth="0.8"
+        android:strokeColor="#40BAE6FD" />
+
+    <!-- Organic Curved Electric Grid Lines (Vertical) -->
+    <path
+        android:pathData="M18,0 Q22,54 18,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#40BAE6FD" />
+    <path
+        android:pathData="M36,0 Q40,54 36,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#50BAE6FD" />
+    <path
+        android:pathData="M54,0 Q58,54 54,108"
+        android:strokeWidth="0.9"
+        android:strokeColor="#60BAE6FD" />
+    <path
+        android:pathData="M72,0 Q68,54 72,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#50BAE6FD" />
+    <path
+        android:pathData="M90,0 Q86,54 90,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#40BAE6FD" />
+
+    <!-- Secondary Diagonal Wave Filaments -->
+    <path
+        android:pathData="M0,36 Q54,54 108,72"
+        android:strokeWidth="0.5"
+        android:strokeColor="#2538BDF8" />
+    <path
+        android:pathData="M0,72 Q54,54 108,36"
+        android:strokeWidth="0.5"
+        android:strokeColor="#2538BDF8" />
+
+    <!-- Luminous Star Nodes (4-point sparkle stars at key intersections) -->
+    <!-- Star Node (18, 18) -->
+    <path
+        android:fillColor="#E0F2FE"
+        android:pathData="M18,15 Q18,18 21,18 Q18,18 18,21 Q18,18 15,18 Q18,18 18,15 Z" />
+
+    <!-- Star Node (90, 18) -->
+    <path
+        android:fillColor="#E0F2FE"
+        android:pathData="M90,15 Q90,18 93,18 Q90,18 90,21 Q90,18 87,18 Q90,18 90,15 Z" />
+
+    <!-- Star Node (54, 18) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,14.5 Q54,18 57.5,18 Q54,18 54,21.5 Q54,18 50.5,18 Q54,18 54,14.5 Z" />
+
+    <!-- Star Node (36, 36) -->
+    <path
+        android:fillColor="#BAE6FD"
+        android:pathData="M36,33.5 Q36,36 38.5,36 Q36,36 36,38.5 Q36,36 33.5,36 Q36,36 36,33.5 Z" />
+
+    <!-- Star Node (72, 36) -->
+    <path
+        android:fillColor="#BAE6FD"
+        android:pathData="M72,33.5 Q72,36 74.5,36 Q72,36 72,38.5 Q72,36 69.5,36 Q72,36 72,33.5 Z" />
+
+    <!-- Star Node (18, 54) -->
+    <path
+        android:fillColor="#E0F2FE"
+        android:pathData="M18,51 Q18,54 21,54 Q18,54 18,57 Q18,54 15,54 Q18,54 18,51 Z" />
+
+    <!-- Star Node (90, 54) -->
+    <path
+        android:fillColor="#E0F2FE"
+        android:pathData="M90,51 Q90,54 93,54 Q90,54 90,57 Q90,54 87,54 Q90,54 90,51 Z" />
+
+    <!-- Star Node (36, 72) -->
+    <path
+        android:fillColor="#BAE6FD"
+        android:pathData="M36,69.5 Q36,72 38.5,72 Q36,72 36,74.5 Q36,72 33.5,72 Q36,72 36,69.5 Z" />
+
+    <!-- Star Node (72, 72) -->
+    <path
+        android:fillColor="#BAE6FD"
+        android:pathData="M72,69.5 Q72,72 74.5,72 Q72,72 72,74.5 Q72,72 69.5,72 Q72,72 72,69.5 Z" />
+
+    <!-- Star Node (18, 90) -->
+    <path
+        android:fillColor="#E0F2FE"
+        android:pathData="M18,87 Q18,90 21,90 Q18,90 18,93 Q18,90 15,90 Q18,90 18,87 Z" />
+
+    <!-- Star Node (54, 90) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,86.5 Q54,90 57.5,90 Q54,90 54,93.5 Q54,90 50.5,90 Q54,90 54,86.5 Z" />
+
+    <!-- Star Node (90, 90) -->
+    <path
+        android:fillColor="#E0F2FE"
+        android:pathData="M90,87 Q90,90 93,90 Q90,90 90,93 Q90,90 87,90 Q90,90 90,87 Z" />
+
+    <!-- Circular Ambient Glow Nodes -->
+    <path
+        android:fillColor="#99E0F2FE"
+        android:pathData="M18,36 A1.2,1.2 0 1,0 18,38.4 A1.2,1.2 0 1,0 18,36 Z" />
+    <path
+        android:fillColor="#99E0F2FE"
+        android:pathData="M90,36 A1.2,1.2 0 1,0 90,38.4 A1.2,1.2 0 1,0 90,36 Z" />
+    <path
+        android:fillColor="#99E0F2FE"
+        android:pathData="M18,72 A1.2,1.2 0 1,0 18,74.4 A1.2,1.2 0 1,0 18,72 Z" />
+    <path
+        android:fillColor="#99E0F2FE"
+        android:pathData="M90,72 A1.2,1.2 0 1,0 90,74.4 A1.2,1.2 0 1,0 90,72 Z" />
 </vector>

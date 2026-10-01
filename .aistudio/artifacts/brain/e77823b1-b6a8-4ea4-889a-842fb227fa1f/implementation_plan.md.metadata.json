@@ -1,0 +1,6 @@
+{
+  "summary":  "Implementation plan to compile the native HeliBoard C++ engine (libjni_latinime.so) via Android NDK in Gradle, connect the native binary dictionary pipeline, and redesign the suggestion bar canvas to match the user's screenshot with bold center candidates, three-dot indicator, clean hairline dividers, and sans-serif typography.",
+  "updatedAt":  "2026-09-25T11:11:15.506693414Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

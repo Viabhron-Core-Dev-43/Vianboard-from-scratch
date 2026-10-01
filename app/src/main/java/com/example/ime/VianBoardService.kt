@@ -140,6 +140,19 @@ class VianBoardService : InputMethodService() {
         }
     }
 
+    private fun postUpdateInputViewInsets() {
+        inputViewContainer?.post {
+            try {
+                // Request window manager to recompute insets and adjust height
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    inputViewContainer?.requestApplyInsets()
+                }
+            } catch (e: Exception) {
+                // Ignore fallback
+            }
+        }
+    }
+
     override fun onConfigureWindow(win: android.view.Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
         super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -202,11 +215,23 @@ class VianBoardService : InputMethodService() {
             onLayoutUpdated = { keys, w, h ->
                 textEngineBridge.updateKeyboardModel(keys, w, h)
             }
+            onModeChanged = { _ ->
+                postUpdateInputViewInsets()
+            }
         }
         container.addView(view)
         keyboardView = view
         inputViewContainer = container
-        initWarmModals(container)
+        // Post lazy warmup on idle so IME opens with zero lag and low initial memory footprint
+        container.post {
+            if (inputViewContainer != null && warmClipboardView == null) {
+                try {
+                    getOrCreateClipboardModal()
+                } catch (e: Exception) {
+                    LogKeeper.logError("IME", "WARM_MODAL_POST_ERR", e.message ?: "")
+                }
+            }
+        }
         return container
     }
 
@@ -245,12 +270,7 @@ class VianBoardService : InputMethodService() {
     }
 
     private fun toggleToolbarExpand() {
-        keyboardView?.let { kv ->
-            kv.layout.isToolbarExpanded = !kv.layout.isToolbarExpanded
-            val density = resources.displayMetrics.density
-            kv.layout.buildLayout(kv.width.toFloat(), kv.height.toFloat(), kv.theme, density, kv.bottomNavInsetPx)
-            kv.invalidate()
-        }
+        keyboardView?.toggleToolbarExpand()
     }
 
     private fun handleAnchorLongClick() {
@@ -265,8 +285,7 @@ class VianBoardService : InputMethodService() {
 
         keyboardView?.let { kv ->
             kv.layout.isIncognitoActive = true
-            val density = resources.displayMetrics.density
-            kv.layout.buildLayout(kv.width.toFloat(), kv.height.toFloat(), kv.theme, density, kv.bottomNavInsetPx)
+            kv.layout.syncToolbarKeys()
             kv.invalidate()
         }
         Toast.makeText(this, "Incognito mode active (3 min)", Toast.LENGTH_SHORT).show()
@@ -310,8 +329,7 @@ class VianBoardService : InputMethodService() {
                     isTempIncognitoActive = false
                     keyboardView?.let { kv ->
                         kv.layout.isIncognitoActive = false
-                        val density = resources.displayMetrics.density
-                        kv.layout.buildLayout(kv.width.toFloat(), kv.height.toFloat(), kv.theme, density)
+                        kv.layout.syncToolbarKeys()
                         kv.invalidate()
                     }
                     Toast.makeText(this, "Incognito mode disabled", Toast.LENGTH_SHORT).show()
@@ -678,8 +696,11 @@ class VianBoardService : InputMethodService() {
         return if (kbHeight > minHeightPx) kbHeight else minHeightPx
     }
 
-    private fun initWarmModals(container: FrameLayout) {
-        // Pre-warm Clipboard Modal
+    private fun getOrCreateClipboardModal(): VianClipboardModalView {
+        val existing = warmClipboardView
+        if (existing != null) return existing
+
+        val container = inputViewContainer ?: throw IllegalStateException("InputViewContainer is null")
         val clipboard = VianClipboardModalView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -705,8 +726,14 @@ class VianBoardService : InputMethodService() {
         }
         container.addView(clipboard)
         warmClipboardView = clipboard
+        return clipboard
+    }
 
-        // Pre-warm Quick Notes (Prompt List) Modal
+    private fun getOrCreateQuickNotesModal(): VianQuickNotesModalView {
+        val existing = warmQuickNotesView
+        if (existing != null) return existing
+
+        val container = inputViewContainer ?: throw IllegalStateException("InputViewContainer is null")
         val quickNotes = VianQuickNotesModalView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -719,17 +746,21 @@ class VianBoardService : InputMethodService() {
             onEnter = { sendEnter() }
             onSelectAll = { currentInputConnection?.performContextMenuAction(android.R.id.selectAll) }
             onPasteToNewNote = {
-                val clipMgr = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-                val clipText = clipMgr?.primaryClip?.getItemAt(0)?.coerceToText(this@VianBoardService)?.toString()?.trim() ?: ""
-                if (clipText.isNotEmpty()) {
-                    val intent = Intent(this@VianBoardService, com.example.ime.quicknotes.QuickNoteEditActivity::class.java).apply {
-                        putExtra(com.example.ime.quicknotes.QuickNoteEditActivity.EXTRA_OLD_TEXT, clipText)
-                        putExtra(com.example.ime.quicknotes.QuickNoteEditActivity.EXTRA_IS_NEW, true)
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    val clipMgr = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                    val clipText = clipMgr?.primaryClip?.getItemAt(0)?.coerceToText(this@VianBoardService)?.toString()?.trim() ?: ""
+                    if (clipText.isNotEmpty()) {
+                        val intent = Intent(this@VianBoardService, com.example.ime.quicknotes.QuickNoteEditActivity::class.java).apply {
+                            putExtra(com.example.ime.quicknotes.QuickNoteEditActivity.EXTRA_OLD_TEXT, clipText)
+                            putExtra(com.example.ime.quicknotes.QuickNoteEditActivity.EXTRA_IS_NEW, true)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                    } else {
+                        Toast.makeText(this@VianBoardService, "Clipboard is empty", Toast.LENGTH_SHORT).show()
                     }
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this@VianBoardService, "Clipboard is empty", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    LogKeeper.logError("IME", "PASTE_NEW_NOTE_ERR", e.message ?: "Clipboard access failed")
                 }
             }
             onNavigate = { dir ->
@@ -743,7 +774,7 @@ class VianBoardService : InputMethodService() {
         }
         container.addView(quickNotes)
         warmQuickNotesView = quickNotes
-        LogKeeper.logEvent("IME", "Warm modals pre-initialized (Clipboard & Prompt List)")
+        return quickNotes
     }
 
     private fun showClipboardModal() {
@@ -751,10 +782,7 @@ class VianBoardService : InputMethodService() {
         dismissActiveModal()
 
         val modalHeight = getModalHeight()
-        val clipboardView = warmClipboardView ?: VianClipboardModalView(this).also {
-            warmClipboardView = it
-            container.addView(it)
-        }
+        val clipboardView = getOrCreateClipboardModal()
 
         clipboardView.layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
@@ -766,7 +794,7 @@ class VianBoardService : InputMethodService() {
         keyboardView?.visibility = View.INVISIBLE
         clipboardView.visibility = View.VISIBLE
         activeModalView = clipboardView
-        LogKeeper.logEvent("IME", "Warm Clipboard modal displayed instantly")
+        LogKeeper.logEvent("IME", "Clipboard modal displayed")
     }
 
     private fun showQuickNotesModal() {
@@ -774,10 +802,7 @@ class VianBoardService : InputMethodService() {
         dismissActiveModal()
 
         val modalHeight = getModalHeight()
-        val quickNotesView = warmQuickNotesView ?: VianQuickNotesModalView(this).also {
-            warmQuickNotesView = it
-            container.addView(it)
-        }
+        val quickNotesView = getOrCreateQuickNotesModal()
 
         quickNotesView.layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
@@ -788,7 +813,7 @@ class VianBoardService : InputMethodService() {
         keyboardView?.visibility = View.INVISIBLE
         quickNotesView.visibility = View.VISIBLE
         activeModalView = quickNotesView
-        LogKeeper.logEvent("IME", "Warm Quick Notes (Prompt List) modal displayed instantly")
+        LogKeeper.logEvent("IME", "Quick Notes modal displayed")
     }
 
     private fun showEmojiModal() {
