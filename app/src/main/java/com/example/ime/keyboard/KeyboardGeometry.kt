@@ -34,8 +34,11 @@ class KeyboardGeometry(
     val anchorKeyBounds: RectF,
     val anchorIconBounds: Rect,
 
-    // 2. Collapsed Toolbar (3-Slot Suggestion Bar)
+    // 2. Collapsed Toolbar (Dynamic Suggestion Bar)
     val suggestionSlotBounds: List<RectF>, // [0] = Left, [1] = Center, [2] = Right
+    val singleSlotBounds: RectF,
+    val dualSlotBounds: List<RectF>,
+    val dualDividerX: Float,
     val divider1X: Float,
     val divider2X: Float,
     val dividerTopY: Float,
@@ -59,6 +62,17 @@ class KeyboardGeometry(
     val rowBounds: List<RectF>,
     val keyBoundsList: List<RectF>
 ) {
+    /**
+     * Returns dynamic slot bounds matching the exact candidate count (1, 2, or 3+).
+     */
+    fun getSlotBoundsForCount(count: Int): List<RectF> {
+        return when (count) {
+            1 -> listOf(singleSlotBounds)
+            2 -> dualSlotBounds
+            else -> suggestionSlotBounds
+        }
+    }
+
     /**
      * Checks if this cached geometry is still valid for the given parameters.
      */
@@ -188,7 +202,18 @@ class KeyboardGeometry(
             }
             val middleAreaWidth = (middleRight - middleLeft).coerceAtLeast(0f)
 
-            // Collapsed 3-Slot Suggestion Bar Geometry (matching HeliBoard 36% center suggestion percentile)
+            // Dynamic Suggestion Bar Geometry
+            // 1. Single Slot: 100% of available middle area
+            val singleSlotBounds = rectF(middleLeft, toolbarBounds.top, middleRight, toolbarBounds.bottom)
+
+            // 2. Dual Slots: 50% / 50% split with center hairline divider
+            val halfWidth = middleAreaWidth / 2f
+            val dualSlot0 = rectF(middleLeft, toolbarBounds.top, middleLeft + halfWidth, toolbarBounds.bottom)
+            val dualSlot1 = rectF(middleLeft + halfWidth, toolbarBounds.top, middleRight, toolbarBounds.bottom)
+            val dualSlotBounds = listOf(dualSlot0, dualSlot1)
+            val dualDividerX = middleLeft + halfWidth
+
+            // 3. Triple Slots: matching HeliBoard 36% center suggestion percentile
             val centerSlotWidth = middleAreaWidth * 0.36f
             val sideSlotWidth = ((middleAreaWidth - centerSlotWidth) / 2f).coerceAtLeast(0f)
             val slot0 = rectF(middleLeft, toolbarBounds.top, middleLeft + sideSlotWidth, toolbarBounds.bottom)
@@ -335,6 +360,9 @@ class KeyboardGeometry(
                 anchorKeyBounds = anchorKeyBounds,
                 anchorIconBounds = anchorIconBounds,
                 suggestionSlotBounds = suggestionSlotBounds,
+                singleSlotBounds = singleSlotBounds,
+                dualSlotBounds = dualSlotBounds,
+                dualDividerX = dualDividerX,
                 divider1X = divider1X,
                 divider2X = divider2X,
                 dividerTopY = dividerTopY,

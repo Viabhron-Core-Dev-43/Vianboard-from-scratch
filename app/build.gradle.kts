@@ -18,19 +18,13 @@ android {
 
     resourceConfigurations += listOf("en", "fr")
     ndk {
-      abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86"))
+      abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
     }
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
-  ndkVersion = "25.2.9519653"
 
-  externalNativeBuild {
-    ndkBuild {
-      path = file("src/main/jni/Android.mk")
-    }
-  }
 
   val keystorePath = System.getenv("DEBUG_KEYSTORE_PATH")
   if (!keystorePath.isNullOrEmpty() && file(keystorePath).exists()) {
@@ -68,11 +62,7 @@ android {
     compose = true
     buildConfig = true
   }
-  packaging {
-    jniLibs {
-      pickFirsts += "**/libjni_latinime.so"
-    }
-  }
+
   testOptions { unitTests { isIncludeAndroidResources = true } }
   dependenciesInfo {
     includeInApk = false

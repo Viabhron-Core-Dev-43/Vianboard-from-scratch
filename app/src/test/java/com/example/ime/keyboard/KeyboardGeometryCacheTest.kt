@@ -138,4 +138,33 @@ class KeyboardGeometryCacheTest {
         assertEquals("Symbols 2 mode must have 5 rows", 5, layout.getRowCountForMode(KeyboardMode.SYMBOLS_2))
         assertEquals("Numpad mode must have 4 rows", 4, layout.getRowCountForMode(KeyboardMode.NUMPAD))
     }
+
+    @Test
+    fun testDynamicSuggestionSlotAllocationSingleAndDual() {
+        layout.ensureLayout(width, height, theme, density)
+        val geo = layout.cachedGeometry!!
+
+        // Single suggestion takes 100% of middle area
+        layout.suggestions = listOf("On my way!")
+        layout.syncSuggestionKeys()
+        val singleKeys = layout.toolbarKeys.filter { it.type == KeyType.SUGGESTION }
+        assertEquals(1, singleKeys.size)
+        assertEquals("On my way!", singleKeys[0].label)
+        val expectedSingleWidth = geo.singleSlotBounds.right - geo.singleSlotBounds.left
+        val actualSingleWidth = singleKeys[0].bounds.right - singleKeys[0].bounds.left
+        assertEquals(expectedSingleWidth, actualSingleWidth, 0.001f)
+
+        // Dual suggestions split 50/50
+        layout.suggestions = listOf("brb", "Be right back!")
+        layout.syncSuggestionKeys()
+        val dualKeys = layout.toolbarKeys.filter { it.type == KeyType.SUGGESTION }
+        assertEquals(2, dualKeys.size)
+        val expectedDual0Width = geo.dualSlotBounds[0].right - geo.dualSlotBounds[0].left
+        val actualDual0Width = dualKeys[0].bounds.right - dualKeys[0].bounds.left
+        val expectedDual1Width = geo.dualSlotBounds[1].right - geo.dualSlotBounds[1].left
+        val actualDual1Width = dualKeys[1].bounds.right - dualKeys[1].bounds.left
+        assertEquals(expectedDual0Width, actualDual0Width, 0.001f)
+        assertEquals(expectedDual1Width, actualDual1Width, 0.001f)
+        assertEquals(geo.dualDividerX, dualKeys[0].bounds.right, 0.001f)
+    }
 }

@@ -333,6 +333,13 @@ class KeyboardLayout {
         }
     }
 
+    private fun RectF.copyFrom(source: RectF) {
+        this.left = source.left
+        this.top = source.top
+        this.right = source.right
+        this.bottom = source.bottom
+    }
+
     /**
      * Updates only suggestion keys using precalculated geometry slots without rebuilding the keyboard grid.
      */
@@ -341,22 +348,35 @@ class KeyboardLayout {
 
         toolbarKeys.removeAll { it.type == KeyType.SUGGESTION }
 
+        val geo = cachedGeometry ?: return
         if (suggestions.isNotEmpty()) {
+            val slots = geo.getSlotBoundsForCount(suggestions.size)
             when (suggestions.size) {
                 1 -> {
                     suggestionKey1.label = suggestions[0]
+                    suggestionKey1.bounds.copyFrom(slots[0])
                     toolbarKeys.add(suggestionKey1)
                 }
                 2 -> {
                     suggestionKey0.label = suggestions[0]
+                    suggestionKey0.bounds.copyFrom(slots[0])
+
                     suggestionKey1.label = suggestions[1]
+                    suggestionKey1.bounds.copyFrom(slots[1])
+
                     toolbarKeys.add(suggestionKey0)
                     toolbarKeys.add(suggestionKey1)
                 }
                 else -> {
                     suggestionKey0.label = suggestions[0]
+                    suggestionKey0.bounds.copyFrom(slots[0])
+
                     suggestionKey1.label = suggestions[1]
+                    suggestionKey1.bounds.copyFrom(slots[1])
+
                     suggestionKey2.label = suggestions[2]
+                    suggestionKey2.bounds.copyFrom(slots[2])
+
                     toolbarKeys.add(suggestionKey0)
                     toolbarKeys.add(suggestionKey1)
                     toolbarKeys.add(suggestionKey2)

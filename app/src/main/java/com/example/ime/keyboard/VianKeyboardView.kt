@@ -117,10 +117,16 @@ class VianKeyboardView @JvmOverloads constructor(
     }
     private val suggestionNormalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
     private val suggestionDotsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
+    }
+    private val vaultPillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+    }
+    private val vaultPillStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
     }
 
     // Vector Icon Paints
@@ -345,14 +351,18 @@ class VianKeyboardView @JvmOverloads constructor(
         toolbarTextPaint.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
 
         suggestionBoldPaint.color = theme.textColor
-        suggestionBoldPaint.textSize = 17f * density
-        suggestionBoldPaint.typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        suggestionBoldPaint.textSize = 15.5f * density
+        suggestionBoldPaint.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
 
         suggestionNormalPaint.color = (theme.textColor and 0x00FFFFFF) or 0xB3000000.toInt()
         suggestionNormalPaint.textSize = 15f * density
-        suggestionNormalPaint.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+        suggestionNormalPaint.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
 
         suggestionDotsPaint.color = (theme.textColor and 0x00FFFFFF) or 0x80000000.toInt()
+
+        vaultPillPaint.color = (theme.keyBackgroundColor and 0x00FFFFFF) or 0x33000000.toInt()
+        vaultPillStrokePaint.color = (theme.textColor and 0x00FFFFFF) or 0x33000000.toInt()
+        vaultPillStrokePaint.strokeWidth = 1f * density
 
         iconStrokePaint.color = theme.textColor
         iconStrokePaint.strokeWidth = 2.2f * density
@@ -496,10 +506,10 @@ class VianKeyboardView @JvmOverloads constructor(
             }
         } else {
             // Draw subtle slot dividers for suggestion bar matching HeliBoard
-            if (layout.suggestions.size >= 2) {
+            if (layout.suggestions.size == 2) {
+                canvas.drawLine(geo.dualDividerX, geo.dividerTopY, geo.dualDividerX, geo.dividerBottomY, suggestionDividerPaint)
+            } else if (layout.suggestions.size >= 3) {
                 canvas.drawLine(geo.divider1X, geo.dividerTopY, geo.divider1X, geo.dividerBottomY, suggestionDividerPaint)
-            }
-            if (layout.suggestions.size >= 3) {
                 canvas.drawLine(geo.divider2X, geo.dividerTopY, geo.divider2X, geo.dividerBottomY, suggestionDividerPaint)
             }
 
@@ -523,15 +533,18 @@ class VianKeyboardView @JvmOverloads constructor(
                         drawCachedIcon(canvas, key.iconBounds, tool.iconResId, theme.textColor)
                     }
                 } else if (key.type == KeyType.SUGGESTION) {
-                    if (key.isPressed) {
-                        canvas.drawRoundRect(key.bounds, 6f * density, 6f * density, pressedKeyPaint)
-                    }
+                    canvas.save()
+                    canvas.clipRect(key.bounds)
 
+                    val isVaultCandidate = key.label.startsWith("🔒") || key.label.startsWith("🔓")
                     val isCenterCandidate = key.code == -201
                     val paintToUse = if (isCenterCandidate) suggestionBoldPaint else suggestionNormalPaint
 
+                    val keyCenterY = (key.bounds.top + key.bounds.bottom) / 2f
+                    val keyCenterX = (key.bounds.left + key.bounds.right) / 2f
+
                     // Ellipsize candidate label gracefully if it exceeds available slot width
-                    val maxTextWidth = (key.bounds.right - key.bounds.left) - (12f * density)
+                    val maxTextWidth = (key.bounds.right - key.bounds.left) - (14f * density)
                     val displayLabel = if (maxTextWidth > 0f && paintToUse.measureText(key.label) > maxTextWidth) {
                         android.text.TextUtils.ellipsize(
                             key.label,
@@ -543,19 +556,38 @@ class VianKeyboardView @JvmOverloads constructor(
                         key.label
                     }
 
+                    if (isVaultCandidate) {
+                        val pillHeight = 28f * density
+                        val pillPaddingH = 10f * density
+                        val measuredTextW = paintToUse.measureText(displayLabel)
+                        val pillWidth = (measuredTextW + (pillPaddingH * 2f)).coerceAtMost(key.bounds.width() - (4f * density))
+                        val pillLeft = keyCenterX - (pillWidth / 2f)
+                        val pillRight = keyCenterX + (pillWidth / 2f)
+                        val pillTop = keyCenterY - (pillHeight / 2f)
+                        val pillBottom = keyCenterY + (pillHeight / 2f)
+                        val pillRect = RectF(pillLeft, pillTop, pillRight, pillBottom)
+                        val pillRadius = 14f * density
+
+                        val bgPaint = if (key.isPressed) pressedKeyPaint else vaultPillPaint
+                        canvas.drawRoundRect(pillRect, pillRadius, pillRadius, bgPaint)
+                        canvas.drawRoundRect(pillRect, pillRadius, pillRadius, vaultPillStrokePaint)
+                    } else if (key.isPressed) {
+                        canvas.drawRoundRect(key.bounds, 6f * density, 6f * density, pressedKeyPaint)
+                    }
+
                     // For center candidate, offset text slightly upward to leave balanced room for the 3 dots
-                    val yOffset = if (isCenterCandidate) (-1.5f * density) else 0f
-                    val keyCenterY = (key.bounds.top + key.bounds.bottom) / 2f
-                    val keyCenterX = (key.bounds.left + key.bounds.right) / 2f
+                    val yOffset = if (isCenterCandidate && !isVaultCandidate && layout.suggestions.size >= 3) (-1.5f * density) else 0f
                     val textY = keyCenterY - ((paintToUse.descent() + paintToUse.ascent()) / 2f) + yOffset
                     canvas.drawText(displayLabel, keyCenterX, textY, paintToUse)
 
                     // Draw HeliBoard's authentic three-dot auto-correct indicator beneath the center word
-                    if (isCenterCandidate && key.label.isNotEmpty()) {
+                    if (isCenterCandidate && !isVaultCandidate && key.label.isNotEmpty() && layout.suggestions.size >= 3) {
                         canvas.drawCircle(keyCenterX - geo.centerDotSpacing, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
                         canvas.drawCircle(keyCenterX, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
                         canvas.drawCircle(keyCenterX + geo.centerDotSpacing, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
                     }
+
+                    canvas.restore()
                 }
             }
         }

@@ -1,6 +1,5 @@
 # VianBoard (Vb2)
 
-
 A fast, lightweight, and privacy-focused Android keyboard (IME) featuring dual English/French text prediction, offline Whisper voice typing, customizable toolbar tools, quick notes, and an encrypted privacy vault.
 
 ---

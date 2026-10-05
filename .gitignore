@@ -34,3 +34,4 @@ build/
 .cxx/
 obj/
 vianboard_source.zip
+.aistudio/

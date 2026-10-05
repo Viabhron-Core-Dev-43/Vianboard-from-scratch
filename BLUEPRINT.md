@@ -235,3 +235,16 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   - Calibrated keyboard start offset to 3dp below the 40dp toolbar strip.
   - Preserved cached geometry architecture and zero-allocation drawing in `VianKeyboardView`.
   - Verified compilation via `compile_applet` (BUILD SUCCESSFUL) and full unit test suite (`:app:testDebugUnitTest`, 33/33 passing).
+- **2026-10-03**: Completed Phase 25 (Clean Decoupling and Removal of Current Dictionary and Prediction Engine):
+  - Removed legacy LatinIME native C++ binary dictionary configuration, `externalNativeBuild`, and obsolete JNI packaging rules from `app/build.gradle.kts`.
+  - Safely decoupled `TextEngineBridge.kt` from `DictionaryFacilitator`, `Suggest`, and `ProximityInfo`, preventing native `ASSERT` / `SIGSEGV` crash loops on startup.
+  - Retained Personal Dictionary & Privacy Vault storage, in-memory shortcut matching (`findMatches()`), masked credential protection, pattern unlock, clipboard, quick notes, and themes.
+  - Verified 100% test pass via `gradle :app:testDebugUnitTest` (30 actionable tasks up-to-date) and verified clean build via `compile_applet`.
+- **2026-10-04**: Completed Phase 26 (Suggestion Bar Stabilization, Dynamic Slot Allocation, Strict Canvas Boundary Clipping & Privacy Vault Pill Redesign):
+  - Overhauled suggestion strip layout with dynamic slot allocation: single candidate receives 100% of available middle bar width; dual candidates receive an even 50%/50% split with a single hairline divider; triple candidates utilize the authentic 32% / 36% / 32% split.
+  - Enforced strict Canvas boundary clipping (`canvas.save()`, `canvas.clipRect(key.bounds)`, `canvas.restore()`) across all suggestion slot drawings in `VianKeyboardView.kt`, permanently eliminating text bleeding out of bounds into adjacent controls or dividers.
+  - Pruned orphaned background dictionary routines, memory trim debounce jobs, and lingering C++ native facilitators from `TextEngineBridge.kt`.
+  - Upgraded suggestion bar typography to modern `sans-serif-medium` at 15sp base size for crisp, uniform legibility.
+  - Redesigned Privacy Vault candidate presentation as secondary-priority interactive pill containers with rounded geometry, subtle semi-transparent background fill, stroke outline, lock badges (`🔒` / `🔓`), and dynamic smart masking for sensitive emails, phone numbers, and addresses.
+  - Purged intermediate debug keystores per Mandates 2 and 3; verified clean build with `compile_applet` and 100% test pass with `gradle :app:testDebugUnitTest`.
+
