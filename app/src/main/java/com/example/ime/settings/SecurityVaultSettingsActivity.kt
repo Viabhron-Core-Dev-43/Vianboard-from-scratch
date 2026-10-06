@@ -59,6 +59,18 @@ class SecurityVaultSettingsActivity : Activity() {
             storage.setAutoRelockOnClose(isChecked)
         }
 
+        val switchBiometricOnly = findViewById<Switch>(R.id.switchBiometricOnly)
+        switchBiometricOnly.isChecked = com.example.ime.security.VaultAuthManager.isBiometricOnly(this)
+        switchBiometricOnly.setOnCheckedChangeListener { _, isChecked ->
+            val mode = if (isChecked) {
+                com.example.ime.security.VaultAuthManager.AUTH_MODE_BIOMETRIC_ONLY
+            } else {
+                com.example.ime.security.VaultAuthManager.AUTH_MODE_PATTERN_PIN
+            }
+            com.example.ime.security.VaultAuthManager.setAuthMode(this, mode)
+            Toast.makeText(this, "Auth Mode: ${if (isChecked) "Biometric Only" else "Pattern + Phone PIN"}", Toast.LENGTH_SHORT).show()
+        }
+
         btnToggleReveal = findViewById(R.id.btnToggleReveal)
         btnToggleReveal.setOnClickListener {
             isPlaintextRevealed = !isPlaintextRevealed
@@ -70,6 +82,10 @@ class SecurityVaultSettingsActivity : Activity() {
             VaultSessionManager.lockPrivacy()
             showLockGate()
             Toast.makeText(this, "Privacy Vault Locked", Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById<Button>(R.id.btnGatePhonePin).setOnClickListener {
+            launchPhonePinUnlock()
         }
 
         findViewById<Button>(R.id.btnQuickUnlockDefault).setOnClickListener {
@@ -128,8 +144,29 @@ class SecurityVaultSettingsActivity : Activity() {
                 showVaultDashboard()
                 Toast.makeText(this@SecurityVaultSettingsActivity, "Vault Unlocked (Session: 5m)", Toast.LENGTH_SHORT).show()
             }
+            onUsePhonePinClicked = {
+                launchPhonePinUnlock()
+            }
         }
         containerPatternUnlock.addView(patternView)
+    }
+
+    private fun launchPhonePinUnlock() {
+        val intent = com.example.ime.security.VaultAuthManager.createPhonePinConfirmIntent(this)
+        if (intent != null) {
+            startActivityForResult(intent, 2001)
+        } else {
+            Toast.makeText(this, "No device PIN or screen lock configured", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 2001 && resultCode == Activity.RESULT_OK) {
+            VaultSessionManager.unlockPrivacy(VaultSessionManager.PRIVACY_SESSION_DEFAULT_MS)
+            showVaultDashboard()
+            Toast.makeText(this, "Vault Unlocked via Phone PIN", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showVaultDashboard() {

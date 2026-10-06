@@ -132,6 +132,21 @@
                 android:checked="true"
                 android:layout_marginStart="6dp" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Biometric Only"
+                android:textColor="#475569"
+                android:textSize="13sp"
+                android:layout_marginStart="14dp" />
+
+            <Switch
+                android:id="@+id/switchBiometricOnly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:layout_marginStart="6dp" />
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"
@@ -249,6 +264,18 @@
             android:layout_height="320dp" />
 
         <Button
+            android:id="@+id/btnGatePhonePin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📱 Unlock with Phone PIN"
+            android:textColor="#0284C7"
+            android:background="#E0F2FE"
+            android:minHeight="44dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginTop="12dp" />
+
+        <Button
             android:id="@+id/btnQuickUnlockDefault"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -258,7 +285,7 @@
             android:minHeight="44dp"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="10dp" />
 
         <Button
             android:id="@+id/btnGateBack"
@@ -270,6 +297,6 @@
             android:minHeight="44dp"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="10dp" />
     </LinearLayout>
 </FrameLayout>

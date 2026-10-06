@@ -11,9 +11,10 @@ class PartitionedPersonalDictionaryTest {
     @Test
     fun testDictionaryPartitionEnum() {
         val partitions = DictionaryPartition.values()
-        assertEquals(2, partitions.size)
+        assertEquals(3, partitions.size)
         assertTrue(partitions.contains(DictionaryPartition.NORMAL))
         assertTrue(partitions.contains(DictionaryPartition.PRIVACY_VAULT))
+        assertTrue(partitions.contains(DictionaryPartition.SECURITY_VAULT))
     }
 
     @Test

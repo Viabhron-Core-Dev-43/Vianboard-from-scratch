@@ -536,7 +536,9 @@ class VianKeyboardView @JvmOverloads constructor(
                     canvas.save()
                     canvas.clipRect(key.bounds)
 
-                    val isVaultCandidate = key.label.startsWith("🔒") || key.label.startsWith("🔓")
+                    val isVaultCandidate = key.label.startsWith("🔒") || key.label.startsWith("🔓") || key.label.startsWith("🛡️")
+                    val isClipboardCandidate = key.label.startsWith("📋")
+                    val isPillCandidate = isVaultCandidate || isClipboardCandidate
                     val isCenterCandidate = key.code == -201
                     val paintToUse = if (isCenterCandidate) suggestionBoldPaint else suggestionNormalPaint
 
@@ -556,7 +558,7 @@ class VianKeyboardView @JvmOverloads constructor(
                         key.label
                     }
 
-                    if (isVaultCandidate) {
+                    if (isPillCandidate) {
                         val pillHeight = 28f * density
                         val pillPaddingH = 10f * density
                         val measuredTextW = paintToUse.measureText(displayLabel)
@@ -576,12 +578,12 @@ class VianKeyboardView @JvmOverloads constructor(
                     }
 
                     // For center candidate, offset text slightly upward to leave balanced room for the 3 dots
-                    val yOffset = if (isCenterCandidate && !isVaultCandidate && layout.suggestions.size >= 3) (-1.5f * density) else 0f
+                    val yOffset = if (isCenterCandidate && !isPillCandidate && layout.suggestions.size >= 3) (-1.5f * density) else 0f
                     val textY = keyCenterY - ((paintToUse.descent() + paintToUse.ascent()) / 2f) + yOffset
                     canvas.drawText(displayLabel, keyCenterX, textY, paintToUse)
 
                     // Draw HeliBoard's authentic three-dot auto-correct indicator beneath the center word
-                    if (isCenterCandidate && !isVaultCandidate && key.label.isNotEmpty() && layout.suggestions.size >= 3) {
+                    if (isCenterCandidate && !isPillCandidate && key.label.isNotEmpty() && layout.suggestions.size >= 3) {
                         canvas.drawCircle(keyCenterX - geo.centerDotSpacing, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
                         canvas.drawCircle(keyCenterX, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)
                         canvas.drawCircle(keyCenterX + geo.centerDotSpacing, geo.centerDotsY, geo.centerDotRadius, suggestionDotsPaint)

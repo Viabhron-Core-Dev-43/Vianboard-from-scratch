@@ -247,4 +247,15 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   - Upgraded suggestion bar typography to modern `sans-serif-medium` at 15sp base size for crisp, uniform legibility.
   - Redesigned Privacy Vault candidate presentation as secondary-priority interactive pill containers with rounded geometry, subtle semi-transparent background fill, stroke outline, lock badges (`🔒` / `🔓`), and dynamic smart masking for sensitive emails, phone numbers, and addresses.
   - Purged intermediate debug keystores per Mandates 2 and 3; verified clean build with `compile_applet` and 100% test pass with `gradle :app:testDebugUnitTest`.
+- **2026-10-06**: Completed Phase 27 (Ultra-Lightweight HeliBoard Suggestion Bar, Pills, One-Handed Mode & Bottom-Right Floating Keyboard):
+  - Synchronized suggestion strip to exact HeliBoard visual architecture: dynamic 32% / 36% / 32% three-slot allocation with two 24dp vertical hairline dividers, 50% / 50% dual-slot allocation with a single hairline divider, and 100% full-width allocation for single candidates with zero dividers.
+  - Configured center candidate with bold `sans-serif-medium` (16sp) and authentic 3-dot auto-correct indicator positioned 7dp beneath the baseline; calibrated side candidates with 70% opacity contrast (`0xB3` alpha) matching HeliBoard `alphaObsoleted`.
+  - Implemented interactive pill container styling for Privacy Vault (`🔒` / `🔓`), Security Vault (`🛡️`), and Clipboard manager (`📋` "Copied text...").
+  - Gated Security Vault pill taps directly to phone device authentication (`KeyguardManager` phone PIN/biometrics) without in-app credential exposure.
+  - Upgraded One-Handed Mode in `OneHandedContainer.kt`: docks keyboard to the right-hand edge by default, toggles to left via side switch (`‹` / `›`), restores full-width via full-screen button (`⛶`), and introduces sidebar width resize handle (`ic_resize`).
+  - Implemented ultra-lightweight Bottom-Right Floating Keyboard via `FloatingKeyboardManager.kt` and `FloatingKeyboardContainer.kt`: system overlay window (`TYPE_APPLICATION_OVERLAY`) anchored in the bottom-right corner with zero duplicate view trees via direct `keyboardView` reparenting (<100KB delta).
+  - Built bottom-right 3-button control row directly below the keyboard in exact left-to-right order: `Close` (✕), `Switch` (⛶) back to docked layout, and `Resize` (⤡) drag handle.
+  - Added support for hosting all IME modals (Clipboard, Quick Notes, Voice, Desktop Shortcuts, Pattern Unlock) seamlessly inside the floating window container.
+  - Verified compilation with `compile_applet` (BUILD SUCCESSFUL) and verified unit tests with `gradle :app:testDebugUnitTest` (39/39 passing).
+
 

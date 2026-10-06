@@ -48,6 +48,8 @@ import com.example.logger.LogKeeper
 class VianBoardService : InputMethodService() {
 
     private var inputViewContainer: FrameLayout? = null
+    private var oneHandedContainer: com.example.ime.onehanded.OneHandedContainer? = null
+    private var floatingKeyboardManager: com.example.ime.floating.FloatingKeyboardManager? = null
     private var keyboardView: VianKeyboardView? = null
     private var activeModalView: View? = null
     private var warmClipboardView: VianClipboardModalView? = null
@@ -99,9 +101,26 @@ class VianBoardService : InputMethodService() {
             keyboardView?.updateSuggestions(suggestions)
         }
         textEngineBridge.onVaultUnlockRequested = { vaultEntry, ic ->
-            showPatternUnlockModal(VaultType.PRIVACY) {
-                textEngineBridge.commitVaultPhrase(vaultEntry, ic ?: currentInputConnection)
+            val vType = if (vaultEntry.partition == com.example.ime.dictionary.DictionaryPartition.SECURITY_VAULT) {
+                VaultType.SECURITY
+            } else {
+                VaultType.PRIVACY
             }
+            if (vType == VaultType.SECURITY) {
+                // User requirement: "use phone thing to Check not app. Like heliboard"
+                launchDeviceCredentialUnlock(vType) {
+                    textEngineBridge.commitVaultPhrase(vaultEntry, ic ?: currentInputConnection)
+                }
+            } else {
+                showPatternUnlockModal(vType) {
+                    textEngineBridge.commitVaultPhrase(vaultEntry, ic ?: currentInputConnection)
+                }
+            }
+        }
+
+        floatingKeyboardManager = com.example.ime.floating.FloatingKeyboardManager(this) { restoredView ->
+            oneHandedContainer?.attachKeyboardView(restoredView)
+            postUpdateInputViewInsets()
         }
 
         val filter = IntentFilter(ACTION_RELOAD_DICTIONARIES)
@@ -132,7 +151,8 @@ class VianBoardService : InputMethodService() {
                         return
                     }
                     clipboardStorage.addClip(text)
-                    LogKeeper.logEvent("IME", "Auto-captured clip into storage without modal")
+                    textEngineBridge.postClipboardSuggestion(text)
+                    LogKeeper.logEvent("IME", "Auto-captured clip into storage and posted clipboard suggestion")
                 }
             }
         } catch (e: Exception) {
@@ -219,7 +239,14 @@ class VianBoardService : InputMethodService() {
                 postUpdateInputViewInsets()
             }
         }
-        container.addView(view)
+        val ohContainer = com.example.ime.onehanded.OneHandedContainer(this).apply {
+            onStateChanged = { _, _ ->
+                postUpdateInputViewInsets()
+            }
+            attachKeyboardView(view)
+        }
+        container.addView(ohContainer)
+        oneHandedContainer = ohContainer
         keyboardView = view
         inputViewContainer = container
         // Post lazy warmup on idle so IME opens with zero lag and low initial memory footprint
@@ -382,10 +409,13 @@ class VianBoardService : InputMethodService() {
                 Toast.makeText(this, "Clipboard cleared", Toast.LENGTH_SHORT).show()
             }
             ToolbarTool.ONE_HANDED -> {
-                Toast.makeText(this, "One-handed mode: Coming soon", Toast.LENGTH_SHORT).show()
+                oneHandedContainer?.toggleOneHanded()
             }
             ToolbarTool.FLOATING -> {
-                Toast.makeText(this, "Floating keyboard: Coming soon", Toast.LENGTH_SHORT).show()
+                val kv = keyboardView ?: return
+                floatingKeyboardManager?.toggleFloating(kv) {
+                    oneHandedContainer?.detachKeyboardView()
+                }
             }
             ToolbarTool.LOG_KEEPER -> {
                 val logs = LogKeeper.getLogs()
@@ -777,12 +807,25 @@ class VianBoardService : InputMethodService() {
         return quickNotes
     }
 
+    private fun getActiveModalContainer(): ViewGroup? {
+        if (floatingKeyboardManager?.isFloatingActive == true) {
+            val fc = floatingKeyboardManager?.getContentContainer()
+            if (fc != null) return fc
+        }
+        return inputViewContainer
+    }
+
     private fun showClipboardModal() {
-        val container = inputViewContainer ?: return
+        val container = getActiveModalContainer() ?: return
         dismissActiveModal()
 
         val modalHeight = getModalHeight()
         val clipboardView = getOrCreateClipboardModal()
+
+        if (clipboardView.parent !== container) {
+            (clipboardView.parent as? ViewGroup)?.removeView(clipboardView)
+            container.addView(clipboardView)
+        }
 
         clipboardView.layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
@@ -798,11 +841,16 @@ class VianBoardService : InputMethodService() {
     }
 
     private fun showQuickNotesModal() {
-        val container = inputViewContainer ?: return
+        val container = getActiveModalContainer() ?: return
         dismissActiveModal()
 
         val modalHeight = getModalHeight()
         val quickNotesView = getOrCreateQuickNotesModal()
+
+        if (quickNotesView.parent !== container) {
+            (quickNotesView.parent as? ViewGroup)?.removeView(quickNotesView)
+            container.addView(quickNotesView)
+        }
 
         quickNotesView.layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
@@ -817,7 +865,7 @@ class VianBoardService : InputMethodService() {
     }
 
     private fun showEmojiModal() {
-        val container = inputViewContainer ?: return
+        val container = getActiveModalContainer() ?: return
         dismissActiveModal()
 
         val emojiView = VianEmojiModalView(this).apply {
@@ -838,7 +886,7 @@ class VianBoardService : InputMethodService() {
     }
 
     private fun showVoiceModal() {
-        val container = inputViewContainer ?: return
+        val container = getActiveModalContainer() ?: return
         dismissActiveModal()
 
         val voiceHeightPx = (160 * resources.displayMetrics.density).toInt()
@@ -925,7 +973,7 @@ class VianBoardService : InputMethodService() {
     }
 
     private fun showDesktopShortcutsModal() {
-        val container = inputViewContainer ?: return
+        val container = getActiveModalContainer() ?: return
         dismissActiveModal()
 
         // Shorter than normal keyboard: 72% height or max 195dp, giving maximum screen real estate to web code editors
@@ -1088,8 +1136,13 @@ class VianBoardService : InputMethodService() {
     }
 
     private fun showPatternUnlockModal(vaultType: VaultType, onPendingCommit: (() -> Unit)? = null) {
-        val container = inputViewContainer ?: return
+        val container = getActiveModalContainer() ?: return
         dismissActiveModal()
+
+        if (com.example.ime.security.VaultAuthManager.isBiometricOnly(this)) {
+            launchDeviceCredentialUnlock(vaultType, onPendingCommit)
+            return
+        }
 
         val patternUnlockView = VianPatternUnlockView(this, vaultType).apply {
             layoutParams = FrameLayout.LayoutParams(
@@ -1098,16 +1151,10 @@ class VianBoardService : InputMethodService() {
             )
             onDismissToAlpha = { dismissActiveModal() }
             onUnlockSuccess = { type ->
-                if (type == VaultType.SECURITY) {
-                    VaultSessionManager.unlockSecurity(VaultSessionManager.SECURITY_SESSION_DEFAULT_MS)
-                    Toast.makeText(this@VianBoardService, "Security Vault Unlocked (Session: 3m)", Toast.LENGTH_SHORT).show()
-                } else {
-                    VaultSessionManager.unlockPrivacy(VaultSessionManager.PRIVACY_SESSION_DEFAULT_MS)
-                    Toast.makeText(this@VianBoardService, "Privacy Vault Unlocked (Session: 5m)", Toast.LENGTH_SHORT).show()
-                    onPendingCommit?.invoke()
-                }
-                dismissActiveModal()
-                LogKeeper.logEvent("IME", "$type vault session activated via pattern unlock")
+                handleVaultUnlocked(type, onPendingCommit)
+            }
+            onUsePhonePinClicked = {
+                launchDeviceCredentialUnlock(vaultType, onPendingCommit)
             }
         }
 
@@ -1117,6 +1164,34 @@ class VianBoardService : InputMethodService() {
         LogKeeper.logEvent("IME", "Pattern unlock modal opened for $vaultType")
     }
 
+    private fun handleVaultUnlocked(type: VaultType, onPendingCommit: (() -> Unit)?) {
+        if (type == VaultType.SECURITY) {
+            VaultSessionManager.unlockSecurity(VaultSessionManager.SECURITY_SESSION_DEFAULT_MS)
+            Toast.makeText(this@VianBoardService, "Security Vault Unlocked (Session: 3m)", Toast.LENGTH_SHORT).show()
+        } else {
+            VaultSessionManager.unlockPrivacy(VaultSessionManager.PRIVACY_SESSION_DEFAULT_MS)
+            Toast.makeText(this@VianBoardService, "Privacy Vault Unlocked (Session: 5m)", Toast.LENGTH_SHORT).show()
+            onPendingCommit?.invoke()
+        }
+        dismissActiveModal()
+        LogKeeper.logEvent("IME", "$type vault session activated")
+    }
+
+    private fun launchDeviceCredentialUnlock(vaultType: VaultType, onPendingCommit: (() -> Unit)?) {
+        val intent = com.example.ime.security.VaultAuthManager.createPhonePinConfirmIntent(this)
+        if (intent != null) {
+            try {
+                startActivity(intent)
+                handleVaultUnlocked(vaultType, onPendingCommit)
+                Toast.makeText(this, "Vault Unlocked via Device PIN", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                LogKeeper.logError("IME", "DEVICE_PIN_LAUNCH_FAIL", e.message ?: "")
+            }
+        } else {
+            Toast.makeText(this, "No device PIN or screen lock configured on phone", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun dismissActiveModal() {
         activeModalView?.let { modal ->
             if (modal is VianVoiceModalView) {
@@ -1124,12 +1199,19 @@ class VianBoardService : InputMethodService() {
             }
             if (modal === warmClipboardView || modal === warmQuickNotesView) {
                 modal.visibility = View.GONE
+                (modal.parent as? ViewGroup)?.let { p ->
+                    val base = inputViewContainer
+                    if (p !== base && base != null) {
+                        p.removeView(modal)
+                        base.addView(modal)
+                    }
+                }
             } else {
-                inputViewContainer?.removeView(modal)
+                (modal.parent as? ViewGroup)?.removeView(modal)
             }
+            keyboardView?.visibility = View.VISIBLE
             activeModalView = null
         }
-        keyboardView?.visibility = View.VISIBLE
     }
 
     private fun handleCommaPopupAction(item: String) {
@@ -1160,10 +1242,13 @@ class VianBoardService : InputMethodService() {
                 showVoiceModal()
             }
             "One Hand" -> {
-                Toast.makeText(this, "One hand mode: Coming soon", Toast.LENGTH_SHORT).show()
+                oneHandedContainer?.toggleOneHanded()
             }
             "Floating" -> {
-                Toast.makeText(this, "Floating keyboard: Coming soon", Toast.LENGTH_SHORT).show()
+                val kv = keyboardView ?: return
+                floatingKeyboardManager?.toggleFloating(kv) {
+                    oneHandedContainer?.detachKeyboardView()
+                }
             }
             "Personal Vault" -> {
                 Toast.makeText(this, "Personal vault: Coming soon", Toast.LENGTH_SHORT).show()
@@ -1225,6 +1310,8 @@ class VianBoardService : InputMethodService() {
             // Ignore
         }
         dismissActiveModal()
+        floatingKeyboardManager?.dismissFloating()
+        floatingKeyboardManager = null
         warmClipboardView = null
         warmQuickNotesView = null
         try {

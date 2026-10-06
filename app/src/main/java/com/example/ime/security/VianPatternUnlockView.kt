@@ -18,6 +18,7 @@ class VianPatternUnlockView(
 
     var onUnlockSuccess: ((VaultType) -> Unit)? = null
     var onDismissToAlpha: (() -> Unit)? = null
+    var onUsePhonePinClicked: (() -> Unit)? = null
 
     private val density = resources.displayMetrics.density
     private var presentationMode = MasterPatternStore.getPresentationMode(context)
@@ -89,6 +90,7 @@ class VianPatternUnlockView(
     private val topBarHeightPx = 42f * density
     private val closeButtonRect = RectF()
     private val modeToggleRect = RectF()
+    private val phonePinButtonRect = RectF()
 
     // 3x3 Dot Matrix state
     private val dotCenters = Array(9) { floatArrayOf(0f, 0f) }
@@ -133,8 +135,23 @@ class VianPatternUnlockView(
         val closeBtnHeight = topBarHeightPx
         closeButtonRect.set(w - closeBtnWidth, 0f, w.toFloat(), closeBtnHeight)
 
+        val pinBtnWidth = 80f * density
+        val pinBtnHeight = 28f * density
+        val pinTop = (topBarHeightPx - pinBtnHeight) / 2f
+        phonePinButtonRect.set(
+            w - closeBtnWidth - pinBtnWidth - (6f * density),
+            pinTop,
+            w - closeBtnWidth - (6f * density),
+            pinTop + pinBtnHeight
+        )
+
         val toggleWidth = 72f * density
-        modeToggleRect.set(w - closeBtnWidth - toggleWidth - (8f * density), 0f, w - closeBtnWidth - (8f * density), closeBtnHeight)
+        modeToggleRect.set(
+            phonePinButtonRect.left - toggleWidth - (6f * density),
+            pinTop,
+            phonePinButtonRect.left - (6f * density),
+            pinTop + pinBtnHeight
+        )
 
         // 2. 3x3 Grid Dots Coordinates
         val gridTop = topBarHeightPx + (8f * density)
@@ -251,6 +268,19 @@ class VianPatternUnlockView(
         textPaint.color = theme.textColor
         textPaint.textAlign = Paint.Align.LEFT
         canvas.drawText(title, 16f * density, topBarHeightPx * 0.65f, textPaint)
+
+        // Phone PIN pill: [📱 PIN]
+        val pinBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = theme.actionKeyColor
+            style = Paint.Style.FILL
+        }
+        val pinTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = theme.textColor
+            textSize = 11f * density
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawRoundRect(phonePinButtonRect, 6f * density, 6f * density, pinBgPaint)
+        canvas.drawText("📱 PIN", phonePinButtonRect.centerX(), phonePinButtonRect.centerY() + (4f * density), pinTextPaint)
 
         // Mode switch pill: [⌨ Disguise]
         val toggleBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -380,6 +410,13 @@ class VianPatternUnlockView(
                 if (closeButtonRect.contains(x, y)) {
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     onDismissToAlpha?.invoke()
+                    return true
+                }
+
+                // Check if tapped Phone PIN button
+                if (phonePinButtonRect.contains(x, y)) {
+                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    onUsePhonePinClicked?.invoke()
                     return true
                 }
 

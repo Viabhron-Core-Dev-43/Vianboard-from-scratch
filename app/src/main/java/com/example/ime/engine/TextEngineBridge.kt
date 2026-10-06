@@ -125,6 +125,7 @@ class TextEngineBridge(private val context: Context) {
     // Partitioned Personal Dictionary & Privacy Vault storage
     val personalDictStorage = PersonalDictionaryStorage.getInstance(context)
     private val vaultCandidateMap = ConcurrentHashMap<String, PersonalDictionaryEntry>()
+    val clipboardCandidateMap = ConcurrentHashMap<String, String>()
     var onVaultUnlockRequested: ((PersonalDictionaryEntry, InputConnection?) -> Unit)? = null
 
     // French accented characters that instantly awaken French from dormancy
@@ -546,12 +547,28 @@ class TextEngineBridge(private val context: Context) {
     fun selectSuggestion(candidate: String, slotIndex: Int, ic: InputConnection?) {
         if (ic == null) return
 
-        // 1. Check if candidate belongs to the Privacy Vault partition
+        // 1. Check if candidate is a clipboard pill
+        if (candidate.startsWith("📋")) {
+            val rawClip = clipboardCandidateMap[candidate] ?: candidate.removePrefix("📋").trim()
+            ic.beginBatchEdit()
+            try {
+                ic.finishComposingText()
+                ic.commitText(rawClip, 1)
+            } finally {
+                ic.endBatchEdit()
+            }
+            clearSuggestions()
+            LogKeeper.logEvent("TextEngineBridge", "Committed clipboard pill snippet")
+            return
+        }
+
+        // 2. Check if candidate belongs to the Privacy Vault or Security Vault partition
         val vaultEntry = vaultCandidateMap[candidate] ?: personalDictStorage.getVaultEntryByPhrase(candidate)
-        if (vaultEntry != null && vaultEntry.partition == DictionaryPartition.PRIVACY_VAULT) {
-            val isUnlocked = VaultSessionManager.isPrivacyUnlocked()
+        if (vaultEntry != null && (vaultEntry.partition == DictionaryPartition.PRIVACY_VAULT || vaultEntry.partition == DictionaryPartition.SECURITY_VAULT)) {
+            val isPrivacy = vaultEntry.partition == DictionaryPartition.PRIVACY_VAULT
+            val isUnlocked = if (isPrivacy) VaultSessionManager.isPrivacyUnlocked() else VaultSessionManager.isSecurityUnlocked()
             if (!isUnlocked) {
-                // Trigger in-keyboard pattern unlock without committing plaintext yet
+                // Trigger unlock flow without committing plaintext yet
                 onVaultUnlockRequested?.invoke(vaultEntry, ic)
                 return
             }
@@ -692,12 +709,21 @@ class TextEngineBridge(private val context: Context) {
                     val matches = personalDictStorage.findMatches(currentToken)
                     if (matches.isNotEmpty()) {
                         val isPrivacyUnlocked = VaultSessionManager.isPrivacyUnlocked()
+                        val isSecurityUnlocked = VaultSessionManager.isSecurityUnlocked()
                         for (entry in matches) {
                             if (entry.partition == DictionaryPartition.PRIVACY_VAULT) {
                                 val display = if (isPrivacyUnlocked) {
                                     "🔓 ${entry.phrase}"
                                 } else {
                                     "🔒 ${PersonalDictionaryStorage.maskPhrase(entry.phrase)}"
+                                }
+                                vaultCandidateMap[display] = entry
+                                results.add(0, display)
+                            } else if (entry.partition == DictionaryPartition.SECURITY_VAULT) {
+                                val display = if (isSecurityUnlocked) {
+                                    "🛡️ ${entry.phrase}"
+                                } else {
+                                    "🛡️ ${PersonalDictionaryStorage.maskPhrase(entry.phrase)}"
                                 }
                                 vaultCandidateMap[display] = entry
                                 results.add(0, display)
@@ -740,6 +766,22 @@ class TextEngineBridge(private val context: Context) {
         currentCandidatesList = emptyList()
         mainHandler.post {
             onSuggestionsUpdated?.invoke(emptyList(), null)
+        }
+    }
+
+    /**
+     * Presents the latest copied clipboard snippet as an interactive pill chip in the suggestion bar.
+     */
+    fun postClipboardSuggestion(clipText: String) {
+        if (clipText.isBlank()) return
+        val preview = clipText.replace("\n", " ").trim()
+        val truncated = if (preview.length > 25) preview.take(22) + "..." else preview
+        val display = "📋 $truncated"
+        clipboardCandidateMap[display] = clipText
+        if (wordComposer.typedWord.isEmpty()) {
+            mainHandler.post {
+                onSuggestionsUpdated?.invoke(listOf(display), null)
+            }
         }
     }
 

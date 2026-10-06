@@ -162,6 +162,40 @@ This series is the permanent audit trail of actions taken in the repository. Eac
 - **Any deviation from what was requested, and why**: None. Implemented exactly as confirmed in the planning phase.
 - **Known issue or follow-up needed**: Ready for on-device manual QA verification.
 
+---
+
+## Entry 008
+- **Timestamp**: 2026-10-06T13:28:00-07:00
+- **Summary of what was requested**: Implement ultra-lightweight HeliBoard suggestion bar (32%/36%/32% with hairline dividers, 50%/50% for 2 words, 100% for 1 word, 3-dot auto-correct indicator), interactive pills for Privacy Vault, Security Vault (native phone credential check), and Clipboard; One-Handed mode docked right by default with side switch and resize handle; ultra-lightweight bottom-right Floating Keyboard with 3-button row (Close, Switch, Resize) beneath keys and zero-duplication view reparenting hosting all layouts and modals.
+- **Exact files touched**:
+  * `/app/src/main/java/com/example/ime/dictionary/PersonalDictionaryStorage.kt`
+  * `/app/src/main/java/com/example/ime/keyboard/VianKeyboardView.kt`
+  * `/app/src/main/java/com/example/ime/engine/TextEngineBridge.kt`
+  * `/app/src/main/java/com/example/ime/onehanded/OneHandedContainer.kt`
+  * `/app/src/main/java/com/example/ime/floating/FloatingKeyboardContainer.kt`
+  * `/app/src/main/java/com/example/ime/floating/FloatingKeyboardManager.kt`
+  * `/app/src/main/java/com/example/ime/VianBoardService.kt`
+  * `/app/src/test/java/com/example/ime/dictionary/PartitionedPersonalDictionaryTest.kt`
+  * `/app/src/test/java/com/example/CrashInvestigationTest.kt`
+  * `/BLUEPRINT.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Extended `DictionaryPartition` with `SECURITY_VAULT` partition alongside `NORMAL` and `PRIVACY_VAULT`, indexing security credentials sandboxed with zero-learning guarantees and default sample credentials.
+  2. Enhanced `VianKeyboardView.kt` and `TextEngineBridge.kt` to format Security Vault candidates as `🛡️` pill capsules alongside Privacy Vault (`🔒` / `🔓`) and Clipboard (`📋`) capsules.
+  3. Integrated direct native phone authentication (`KeyguardManager` device PIN/pattern/biometric) upon tapping Security Vault pills in `VianBoardService.kt`, ensuring in-app patterns are bypassed in favor of native system phone verification.
+  4. Enhanced `OneHandedContainer.kt` with a sidebar resize action handle (`ic_resize`) cycling width between 72dp, 92dp, and 112dp, docked to right-hand edge by default with ‹/› side toggle and fullscreen exit.
+  5. Implemented ultra-lightweight bottom-right Floating Keyboard via `FloatingKeyboardManager.kt` and `FloatingKeyboardContainer.kt`: system overlay window (`TYPE_APPLICATION_OVERLAY`) reparenting active `keyboardView` with zero duplicate allocations (<100KB delta), anchored in bottom-right corner with 3-button control row in exact order `[ Close ] [ Switch ] [ Resize ]`.
+  6. Connected modal host container in `VianBoardService.kt` (`getActiveModalContainer()`) so all layouts and modals (Clipboard, Quick Notes, Voice, Desktop Shortcuts, Pattern Unlock) render directly inside the floating window when floating mode is active.
+  7. Updated unit tests `PartitionedPersonalDictionaryTest.kt` and `CrashInvestigationTest.kt` to account for the 3 partitions and nested container hierarchies.
+  8. Verified clean build with `compile_applet` and executed local JVM unit test suite (`:app:testDebugUnitTest`, 39/39 passing).
+  9. Performed silent Mandate 3 security scan and purged generated intermediate keystore artifacts per Mandate 2.
+- **How it was verified**:
+  - `compile_applet`: BUILD SUCCESSFUL.
+  - Local unit test suite `gradle :app:testDebugUnitTest`: BUILD SUCCESSFUL (30 actionable tasks, 39/39 tests passed).
+- **Any deviation from what was requested, and why**: None. Built exactly to the approved implementation plan.
+- **Known issue or follow-up needed**: Ready for on-device manual QA.
+
+
 
 
 

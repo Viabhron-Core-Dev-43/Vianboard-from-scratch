@@ -12,7 +12,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 enum class DictionaryPartition {
     NORMAL,         // Visible to system and other apps via selective mirror
-    PRIVACY_VAULT   // 100% Sandboxed, masked suggestions, in-keyboard pattern unlock, zero-learning
+    PRIVACY_VAULT,  // 100% Sandboxed, masked suggestions, in-keyboard pattern unlock, zero-learning
+    SECURITY_VAULT  // Sandboxed credentials/passwords, masked suggestions, phone security check (PIN/biometric), zero-learning
 }
 
 data class PersonalDictionaryEntry(
@@ -195,7 +196,7 @@ class PersonalDictionaryStorage private constructor(private val appContext: Cont
         entriesById[entry.id] = entry
         val shortcutKey = entry.shortcut.trim().lowercase()
 
-        if (entry.partition == DictionaryPartition.PRIVACY_VAULT) {
+        if (entry.partition == DictionaryPartition.PRIVACY_VAULT || entry.partition == DictionaryPartition.SECURITY_VAULT) {
             if (shortcutKey.isNotEmpty()) {
                 vaultShortcuts[shortcutKey] = entry
             }
@@ -262,6 +263,14 @@ class PersonalDictionaryStorage private constructor(private val appContext: Cont
                 weight = 250,
                 partition = DictionaryPartition.PRIVACY_VAULT,
                 category = "Credentials"
+            ),
+            // Security Vault Sample (Masked, unlocked via Phone PIN / Biometric)
+            PersonalDictionaryEntry(
+                phrase = "Passcode#9871!",
+                shortcut = "mypin",
+                weight = 250,
+                partition = DictionaryPartition.SECURITY_VAULT,
+                category = "Security"
             )
         )
 
@@ -288,7 +297,7 @@ class PersonalDictionaryStorage private constructor(private val appContext: Cont
 
     fun getVaultEntries(): List<PersonalDictionaryEntry> {
         return entriesById.values
-            .filter { it.partition == DictionaryPartition.PRIVACY_VAULT }
+            .filter { it.partition == DictionaryPartition.PRIVACY_VAULT || it.partition == DictionaryPartition.SECURITY_VAULT }
             .sortedByDescending { it.createdAt }
     }
 

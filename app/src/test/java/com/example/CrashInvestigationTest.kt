@@ -55,7 +55,17 @@ class CrashInvestigationTest {
         service.onStartInput(editorInfo, false)
         service.onStartInputView(editorInfo, false)
 
-        val kv = (inputView as android.view.ViewGroup).getChildAt(0) as VianKeyboardView
+        fun findKeyboardView(view: android.view.View): VianKeyboardView? {
+            if (view is VianKeyboardView) return view
+            if (view is android.view.ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    val found = findKeyboardView(view.getChildAt(i))
+                    if (found != null) return found
+                }
+            }
+            return null
+        }
+        val kv = findKeyboardView(inputView)
         assertNotNull("KeyboardView should not be null", kv)
         kv?.measure(
             android.view.View.MeasureSpec.makeMeasureSpec(1080, android.view.View.MeasureSpec.EXACTLY),
