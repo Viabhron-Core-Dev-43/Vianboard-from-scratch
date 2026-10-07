@@ -257,5 +257,12 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   - Built bottom-right 3-button control row directly below the keyboard in exact left-to-right order: `Close` (✕), `Switch` (⛶) back to docked layout, and `Resize` (⤡) drag handle.
   - Added support for hosting all IME modals (Clipboard, Quick Notes, Voice, Desktop Shortcuts, Pattern Unlock) seamlessly inside the floating window container.
   - Verified compilation with `compile_applet` (BUILD SUCCESSFUL) and verified unit tests with `gradle :app:testDebugUnitTest` (39/39 passing).
+- **2026-10-07**: Completed Phase 28 (CI Pipeline Healing & Obsolete Native NDK Step Removal):
+  - Diagnosed and resolved GitHub Actions build failure in `.github/workflows/build-apk.yml`.
+  - Removed orphaned `Build Native LatinIME Library (ndk-build)` pre-build step that aborted with exit code 2 on missing `Android.mk` following the Phase 25 decoupling of the legacy LatinIME C++ binary dictionary engine.
+  - Preserved CMake compilation for `libwhisper.so` and ensured clean execution path to `./gradlew assembleDebug`.
+  - Verified compilation with `compile_applet` (BUILD SUCCESSFUL) and verified all unit tests with `gradle :app:testDebugUnitTest` (39/39 passing).
+  - Maintained zero-credential compliance per Mandate 2 and Mandate 3.
+
 
 

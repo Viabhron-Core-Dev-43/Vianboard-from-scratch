@@ -195,6 +195,29 @@ This series is the permanent audit trail of actions taken in the repository. Eac
 - **Any deviation from what was requested, and why**: None. Built exactly to the approved implementation plan.
 - **Known issue or follow-up needed**: Ready for on-device manual QA.
 
+---
+
+## Entry 009
+- **Timestamp**: 2026-10-07T12:27:00-07:00
+- **Summary of what was requested**: Fix failing GitHub Actions CI pipeline in `.github/workflows/build-apk.yml` where `ndk-build` aborted with exit code 2 due to missing `Android.mk`.
+- **Exact files touched**:
+  * `/.github/workflows/build-apk.yml`
+  * `/BLUEPRINT.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Inspected GitHub Actions run log: verified that step 40 (`Build Native LatinIME Library (ndk-build)`) aborted because `app/src/main/jni/Android.mk` no longer exists following the Phase 25 complete decoupling of the LatinIME C++ binary dictionary engine.
+  2. Surgically pruned the obsolete `Build Native LatinIME Library (ndk-build)` pre-build step from `/.github/workflows/build-apk.yml`.
+  3. Preserved isolated CMake compilation for `libwhisper.so` in step 40 (`app/src/main/jni/whisper/CMakeLists.txt`), unblocking the direct path to `./gradlew assembleDebug`.
+  4. Verified local applet compilation with `compile_applet` (BUILD SUCCESSFUL).
+  5. Verified all 39 unit tests with `gradle :app:testDebugUnitTest` (30 actionable tasks, 39/39 passing).
+  6. Performed Mandates 2 and 3 credential verification and purged intermediate keystore build artifacts.
+- **How it was verified**:
+  - `compile_applet`: BUILD SUCCESSFUL.
+  - Local unit test suite `gradle :app:testDebugUnitTest`: BUILD SUCCESSFUL (39/39 passed in 1m 2s).
+- **Any deviation from what was requested, and why**: None. Exact surgical fix applied to the failing CI workflow.
+- **Known issue or follow-up needed**: Push changes to GitHub repository to trigger the repaired GitHub Actions workflow and confirm green APK build.
+
+
 
 
 

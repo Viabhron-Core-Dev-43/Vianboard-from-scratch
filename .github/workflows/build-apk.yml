@@ -37,19 +37,6 @@ jobs:
             keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
 
-      - name: Build Native LatinIME Library (ndk-build)
-        run: |
-          NDK_DIR=$(find $ANDROID_HOME/ndk -maxdepth 1 -mindepth 1 2>/dev/null | sort -V | tail -n 1)
-          if [ -n "$NDK_DIR" ] && [ -f "$NDK_DIR/ndk-build" ]; then
-            echo "Compiling libjni_latinime.so for ARM (arm64-v8a, armeabi-v7a)..."
-            $NDK_DIR/ndk-build -C app/src/main/jni NDK_APPLICATION_MK=Application.mk NDK_LIBS_OUT=$GITHUB_WORKSPACE/app/src/main/jniLibs APP_ABI="armeabi-v7a arm64-v8a"
-          elif command -v ndk-build &> /dev/null; then
-            echo "Compiling libjni_latinime.so using ndk-build in PATH..."
-            ndk-build -C app/src/main/jni NDK_APPLICATION_MK=Application.mk NDK_LIBS_OUT=$GITHUB_WORKSPACE/app/src/main/jniLibs APP_ABI="armeabi-v7a arm64-v8a"
-          else
-            echo "NDK not present in environment; skipping native pre-build"
-          fi
-
       - name: Build Native Whisper Library (CMake)
         run: |
           NDK_DIR=$(find $ANDROID_HOME/ndk -maxdepth 1 -mindepth 1 2>/dev/null | sort -V | tail -n 1)
