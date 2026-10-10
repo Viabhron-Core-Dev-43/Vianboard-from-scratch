@@ -104,8 +104,8 @@ class ModalBottomBarView @JvmOverloads constructor(
         textPaint.color = theme.textColor
         textPaint.textSize = 14f * density
 
-        hintPaint.color = theme.enterTextColor
-        hintPaint.textSize = 11f * density
+        hintPaint.color = (theme.enterTextColor and 0x00FFFFFF) or 0xB3000000.toInt()
+        hintPaint.textSize = 10f * density
     }
 
     private fun loadIcons() {

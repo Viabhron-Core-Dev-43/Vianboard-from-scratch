@@ -6,26 +6,25 @@
     android:background="#F8FAFC"
     android:fitsSystemWindows="true">
 
-    <!-- Header -->
+    <!-- Header Toolbar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="16dp"
-        android:background="#FFFFFF"
-        android:elevation="2dp">
+        android:paddingHorizontal="16dp"
+        android:background="#FFFFFF">
 
         <Button
             android:id="@+id/btnBack"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:text="← Back"
             android:textColor="#0F172A"
             android:background="#E2E8F0"
-            android:minHeight="44dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp" />
+            android:textSize="13sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
 
         <TextView
             android:layout_width="0dp"
@@ -33,11 +32,16 @@
             android:layout_weight="1"
             android:text="Appearance"
             android:textColor="#0F172A"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:gravity="center"
-            android:layout_marginEnd="40dp" />
+            android:layout_marginEnd="60dp" />
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E2E8F0" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -48,219 +52,263 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="24dp">
 
-            <!-- 1. Main Layout Customisation (Live Preview & Sliders) -->
-            <LinearLayout
-                android:id="@+id/cardMainLayoutCustomization"
+
+
+            <!-- Category: LAYOUT & PREVIEW -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:text="LAYOUT &amp; PREVIEW"
+                android:textColor="#64748B"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:paddingStart="4dp"
+                android:paddingBottom="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:background="#FFFFFF"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="1dp"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_palette"
-                    android:contentDescription="Main Layout Customisation" />
-
+                <!-- Layout & Live Preview -->
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:id="@+id/cardLayoutPreview"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="14dp">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_settings_layout"
+                        android:contentDescription="Layout &amp; Live Preview" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Layout &amp; Live Preview"
+                            android:textColor="#0F172A"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Adjust key heights, gaps, corner radius &amp; test live"
+                            android:textColor="#64748B"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Main Layout Customisation"
-                        android:textColor="#0F172A"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Key height, corner radius, gaps &amp; live preview"
-                        android:textColor="#64748B"
-                        android:textSize="13sp"
-                        android:layout_marginTop="2dp" />
+                        android:text="›"
+                        android:textColor="#94A3B8"
+                        android:textSize="22sp" />
                 </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#94A3B8"
-                    android:textSize="22sp" />
             </LinearLayout>
 
-            <!-- 2. Desktop Shortcuts -->
-            <LinearLayout
-                android:id="@+id/cardDesktopShortcuts"
+            <!-- Category: KEYBOARD TOOLS & CONTROLS -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="1dp"
-                android:layout_marginBottom="12dp">
+                android:text="KEYBOARD TOOLS &amp; CONTROLS"
+                android:textColor="#64748B"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:paddingStart="4dp"
+                android:paddingBottom="6dp" />
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_desktop_shortcuts"
-                    android:contentDescription="Desktop Shortcuts" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Desktop Shortcuts"
-                        android:textColor="#0F172A"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Configure desktop app shortcuts &amp; quick launch apps"
-                        android:textColor="#64748B"
-                        android:textSize="13sp"
-                        android:layout_marginTop="2dp" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#94A3B8"
-                    android:textSize="22sp" />
-            </LinearLayout>
-
-            <!-- 3. Comma Key Long-Press Popup -->
             <LinearLayout
-                android:id="@+id/cardCommaCustomization"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:orientation="vertical"
                 android:background="#FFFFFF"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="1dp"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
-                <TextView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:text=","
-                    android:textSize="26sp"
-                    android:textStyle="bold"
-                    android:textColor="#0F172A"
-                    android:gravity="center" />
-
+                <!-- Toolbar Tools -->
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:id="@+id/cardToolbar"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="14dp">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_settings_toolbar"
+                        android:contentDescription="Toolbar configuration" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Toolbar Tools"
+                            android:textColor="#0F172A"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Configure action bar and pinned tools"
+                            android:textColor="#64748B"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Comma Key Long-Press Popup"
-                        android:textColor="#0F172A"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvCommaSummary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Settings (fixed) + 4 slots chosen"
-                        android:textColor="#64748B"
-                        android:textSize="13sp"
-                        android:layout_marginTop="2dp" />
+                        android:text="›"
+                        android:textColor="#94A3B8"
+                        android:textSize="22sp" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#94A3B8"
-                    android:textSize="22sp" />
-            </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F1F5F9"
+                    android:layout_marginStart="54dp" />
 
-            <!-- 4. Toolbar Tools -->
-            <LinearLayout
-                android:id="@+id/cardToolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="1dp"
-                android:layout_marginBottom="12dp">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:tint="#0F172A"
-                    android:contentDescription="Toolbar configuration" />
-
+                <!-- Comma Key Popup -->
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:id="@+id/cardCommaCustomization"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="14dp">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_settings_preferences"
+                        android:contentDescription="Comma Popup" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Comma Key Long-Press"
+                            android:textColor="#0F172A"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvCommaSummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Settings (fixed) + 4 slots chosen"
+                            android:textColor="#64748B"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Toolbar Tools"
-                        android:textColor="#0F172A"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Configure chevron tools &amp; pinned tools"
-                        android:textColor="#64748B"
-                        android:textSize="13sp"
-                        android:layout_marginTop="2dp" />
+                        android:text="›"
+                        android:textColor="#94A3B8"
+                        android:textSize="22sp" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F1F5F9"
+                    android:layout_marginStart="54dp" />
+
+                <!-- Desktop Shortcuts -->
+                <LinearLayout
+                    android:id="@+id/cardDesktopShortcuts"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="›"
-                    android:textColor="#94A3B8"
-                    android:textSize="22sp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_desktop_shortcuts"
+                        android:contentDescription="Desktop Shortcuts" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Desktop Shortcuts"
+                            android:textColor="#0F172A"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Configure quick launch apps and shortcuts"
+                            android:textColor="#64748B"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textColor="#94A3B8"
+                        android:textSize="22sp" />
+                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>

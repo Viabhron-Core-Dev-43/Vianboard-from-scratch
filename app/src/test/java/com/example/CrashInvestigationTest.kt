@@ -23,7 +23,6 @@ class CrashInvestigationTest {
             com.example.ime.setup.SetupWizardActivity::class.java,
             com.example.ime.settings.SettingsActivity::class.java,
             com.example.ime.settings.AppearanceActivity::class.java,
-            com.example.ime.settings.MainLayoutCustomizationActivity::class.java,
             com.example.ime.settings.AppearanceSettingsActivity::class.java,
             com.example.ime.settings.LayoutCustomizationActivity::class.java,
             com.example.ime.settings.ToolbarSettingsActivity::class.java,

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    SPDX-FileCopyrightText: Material Design Authors / Google LLC
+    HeliBoard / AOSP Material authentic shift lock key icon
     SPDX-License-Identifier: Apache-2.0
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="960"
-    android:viewportHeight="960">
-  <path
-      android:fillColor="#FFF"
-      android:pathData="M280,720Q263,720 251.5,708.5Q240,697 240,680Q240,663 251.5,651.5Q263,640 280,640L680,640Q697,640 708.5,651.5Q720,663 720,680Q720,697 708.5,708.5Q697,720 680,720L280,720ZM480,336L324,492Q313,503 296,503Q279,503 268,492Q257,481 257,464Q257,447 268,436L452,252Q464,240 480,240Q496,240 508,252L692,436Q703,447 703,464Q703,481 692,492Q681,503 664,503Q647,503 636,492L480,336Z"/>
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2.8 L4.8,10.2 c-0.4,0.4 -0.1,1.1 0.5,1.1 H8.5 v4.8 c0,0.6 0.4,1.0 1.0,1.0 h5.0 c0.6,0 1.0,-0.4 1.0,-1.0 V11.3 h3.2 c0.6,0 0.9,-0.7 0.5,-1.1 L12,2.8 Z M9.5,18.5 c-0.6,0 -1.0,0.4 -1.0,1.0 v0.5 c0,0.6 0.4,1.0 1.0,1.0 h5.0 c0.6,0 1.0,-0.4 1.0,-1.0 v-0.5 c0,-0.6 -0.4,-1.0 -1.0,-1.0 Z"/>
 </vector>

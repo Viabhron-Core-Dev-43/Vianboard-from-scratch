@@ -5,12 +5,25 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
+import com.example.ime.keyboard.KeyboardGeometry
 import com.example.ime.keyboard.KeyboardTheme
 import kotlin.math.hypot
 
+/**
+ * High-security 9-dot pattern unlock modal for VianBoard.
+ *
+ * Requirements:
+ * 1. Height matching normal keyboard layout dynamically (onMeasure).
+ * 2. 9 dots grid with intermediate jumping support and pattern verification.
+ * 3. Discrete '✕' cross button in the top-right corner with 48dp touch target.
+ * 4. Stealth Mode with authentic keyboard layout visually overlaid on top, with the 9 dots subtly visible.
+ * 5. Mild tactile vibration feedback on every dot touched and action performed.
+ */
 class VianPatternUnlockView(
     context: Context,
     private val vaultType: VaultType = VaultType.SECURITY
@@ -22,14 +35,15 @@ class VianPatternUnlockView(
 
     private val density = resources.displayMetrics.density
     private var presentationMode = MasterPatternStore.getPresentationMode(context)
+    private var bottomNavInsetPx = 0f
 
-    // Colors & Paints
-    private val theme = KeyboardTheme()
+    // Theme & Paints
+    private val theme = KeyboardTheme.loadFromPrefs(context)
     private val bgPaint = Paint().apply {
         color = theme.backgroundColor
         style = Paint.Style.FILL
     }
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val headerTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = theme.textColor
         textSize = 14f * density
         textAlign = Paint.Align.LEFT
@@ -37,6 +51,16 @@ class VianPatternUnlockView(
     private val dotNormalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF64748B.toInt() // Slate 500
         style = Paint.Style.FILL
+    }
+    private val dotSubtlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        // Subtly visible for stealth mode: 35% opacity slate
+        color = 0x5964748B
+        style = Paint.Style.FILL
+    }
+    private val dotSubtleRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0x40000000
+        style = Paint.Style.STROKE
+        strokeWidth = 1f * density
     }
     private val dotSelectedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF0284C7.toInt() // Sky 600
@@ -62,7 +86,7 @@ class VianPatternUnlockView(
         style = Paint.Style.FILL
     }
 
-    // Key disguise paints
+    // Keycap paints for authentic keyboard visual overlay
     private val keycapPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = theme.keyBackgroundColor
         style = Paint.Style.FILL
@@ -75,19 +99,28 @@ class VianPatternUnlockView(
         color = theme.keyBottomBevelColor
         style = Paint.Style.FILL
     }
+    private val actionKeyBevelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = theme.actionKeyBevelColor
+        style = Paint.Style.FILL
+    }
     private val keyTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = theme.textColor
-        textSize = 18f * density
+        textSize = 19f * density
         textAlign = Paint.Align.CENTER
     }
     private val keyActionTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = theme.textColor
-        textSize = 12f * density
+        textSize = 13.5f * density
+        textAlign = Paint.Align.CENTER
+    }
+    private val decoyToolbarTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = (theme.textColor and 0x00FFFFFF) or 0x80000000.toInt()
+        textSize = 13f * density
         textAlign = Paint.Align.CENTER
     }
 
     // Top action bar
-    private val topBarHeightPx = 42f * density
+    private val topBarHeightPx = (theme.toolbarHeightDp * density).coerceAtLeast(40f * density)
     private val closeButtonRect = RectF()
     private val modeToggleRect = RectF()
     private val phonePinButtonRect = RectF()
@@ -100,15 +133,13 @@ class VianPatternUnlockView(
     private var isTouching = false
     private var unlockState: UnlockState = UnlockState.IDLE
 
-    // Disguise Mode state
-    private data class DisguiseKey(
+    // Keyboard visual overlay keys
+    private data class OverlaidKey(
         val label: String,
         val isAction: Boolean,
         val bounds: RectF
     )
-    private val disguiseKeys = mutableListOf<DisguiseKey>()
-    private val selectedDisguiseSequence = mutableListOf<String>()
-    private var lastTouchedKeyLabel: String? = null
+    private val overlaidKeys = mutableListOf<OverlaidKey>()
 
     private enum class UnlockState {
         IDLE,
@@ -120,6 +151,40 @@ class VianPatternUnlockView(
     init {
         isFocusable = true
         isFocusableInTouchMode = true
+
+        setOnApplyWindowInsetsListener { _, insets ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val navInsets = insets.getInsets(WindowInsets.Type.navigationBars())
+                bottomNavInsetPx = navInsets.bottom.toFloat()
+            } else {
+                @Suppress("DEPRECATION")
+                bottomNavInsetPx = insets.systemWindowInsetBottom.toFloat()
+            }
+            requestLayout()
+            insets
+        }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val rowCount = 4
+        val verticalGapPx = theme.verticalGapDp * density
+        val rowsTotalHeight = theme.keyHeightDp * rowCount * density
+        val totalVerticalGaps = (rowCount - 1) * verticalGapPx
+        val toolbarHeight = theme.toolbarHeightDp * density
+        val paddingVPx = KeyboardGeometry.HELIBOARD_PADDING_DP * density
+
+        // Exact calculated keyboard height matching VianKeyboardView: toolbar + verticalGap + rows + gaps + padding + insets
+        val calculatedHeight = (toolbarHeight + verticalGapPx + rowsTotalHeight + totalVerticalGaps + (paddingVPx * 2f) + bottomNavInsetPx).toInt()
+        val finalHeight = calculatedHeight.coerceAtLeast((220 * density).toInt())
+
+        val specMode = MeasureSpec.getMode(heightMeasureSpec)
+        val finalHeightResolved = if (specMode == MeasureSpec.EXACTLY) {
+            MeasureSpec.getSize(heightMeasureSpec)
+        } else {
+            finalHeight
+        }
+        setMeasuredDimension(width, finalHeightResolved)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -130,22 +195,23 @@ class VianPatternUnlockView(
     private fun computeLayout(w: Int, h: Int) {
         if (w <= 0 || h <= 0) return
 
-        // 1. Top Bar Action Rects (Minimum 48dp touch targets)
-        val closeBtnWidth = 48f * density
+        // 1. Top-Right Corner Cross Button: minimum 48dp x 48dp touch region
+        val closeBtnWidth = (48f * density).coerceAtLeast(topBarHeightPx)
         val closeBtnHeight = topBarHeightPx
         closeButtonRect.set(w - closeBtnWidth, 0f, w.toFloat(), closeBtnHeight)
 
-        val pinBtnWidth = 80f * density
+        // 2. Mode Toggle button & PIN button in header
+        val pinBtnWidth = 76f * density
         val pinBtnHeight = 28f * density
         val pinTop = (topBarHeightPx - pinBtnHeight) / 2f
         phonePinButtonRect.set(
-            w - closeBtnWidth - pinBtnWidth - (6f * density),
+            closeButtonRect.left - pinBtnWidth - (6f * density),
             pinTop,
-            w - closeBtnWidth - (6f * density),
+            closeButtonRect.left - (6f * density),
             pinTop + pinBtnHeight
         )
 
-        val toggleWidth = 72f * density
+        val toggleWidth = 78f * density
         modeToggleRect.set(
             phonePinButtonRect.left - toggleWidth - (6f * density),
             pinTop,
@@ -153,9 +219,9 @@ class VianPatternUnlockView(
             pinTop + pinBtnHeight
         )
 
-        // 2. 3x3 Grid Dots Coordinates
+        // 3. 3x3 Dot Matrix Coordinates (Covers the interaction area evenly)
         val gridTop = topBarHeightPx + (8f * density)
-        val gridBottom = h - (12f * density)
+        val gridBottom = h - bottomNavInsetPx - (10f * density)
         val gridHeight = gridBottom - gridTop
         val gridWidth = w.toFloat()
 
@@ -175,13 +241,13 @@ class VianPatternUnlockView(
             }
         }
 
-        // 3. Disguise Mode Keyboard Keys Layout
-        disguiseKeys.clear()
-        val kbTop = topBarHeightPx
-        val availableKbHeight = h - kbTop
+        // 4. Keyboard Visual Overlay Layout (Authentic 4-row HeliBoard geometry)
+        overlaidKeys.clear()
+        val kbTop = topBarHeightPx + (theme.verticalGapDp * density)
+        val availableKbHeight = h - kbTop - bottomNavInsetPx - (KeyboardGeometry.HELIBOARD_PADDING_DP * density)
         val rowHeight = availableKbHeight / 4f
-        val gapH = 4f * density
-        val gapV = 3.5f * density
+        val gapH = theme.horizontalGapDp * density
+        val gapV = theme.verticalGapDp * density
 
         // Row 1: Q W E R T Y U I O P (10 keys)
         val r1Chars = listOf("Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P")
@@ -190,7 +256,7 @@ class VianPatternUnlockView(
             val left = gapH + i * (r1KeyWidth + gapH)
             val top = kbTop + (gapV / 2f)
             val rect = RectF(left, top, left + r1KeyWidth, top + rowHeight - gapV)
-            disguiseKeys.add(DisguiseKey(r1Chars[i], false, rect))
+            overlaidKeys.add(OverlaidKey(r1Chars[i], false, rect))
         }
 
         // Row 2: A S D F G H J K L (9 keys, inset)
@@ -201,7 +267,7 @@ class VianPatternUnlockView(
             val left = r2SideMargin + i * (r2KeyWidth + gapH)
             val top = kbTop + rowHeight + (gapV / 2f)
             val rect = RectF(left, top, left + r2KeyWidth, top + rowHeight - gapV)
-            disguiseKeys.add(DisguiseKey(r2Chars[i], false, rect))
+            overlaidKeys.add(OverlaidKey(r2Chars[i], false, rect))
         }
 
         // Row 3: Shift, Z X C V B N M, Del
@@ -210,66 +276,58 @@ class VianPatternUnlockView(
         val r3RemainingWidth = w - (functionalWidth * 2) - (gapH * 8)
         val r3KeyWidth = r3RemainingWidth / 7f
 
-        // Shift
         val shiftRect = RectF(gapH, kbTop + (rowHeight * 2) + (gapV / 2f), gapH + functionalWidth, kbTop + (rowHeight * 3) - (gapV / 2f))
-        disguiseKeys.add(DisguiseKey("⇧", true, shiftRect))
+        overlaidKeys.add(OverlaidKey("⇧", true, shiftRect))
 
         for (i in r3Chars.indices) {
             val left = gapH + functionalWidth + gapH + i * (r3KeyWidth + gapH)
             val top = kbTop + (rowHeight * 2) + (gapV / 2f)
             val rect = RectF(left, top, left + r3KeyWidth, top + rowHeight - gapV)
-            disguiseKeys.add(DisguiseKey(r3Chars[i], false, rect))
+            overlaidKeys.add(OverlaidKey(r3Chars[i], false, rect))
         }
 
-        // Del
         val delLeft = w - gapH - functionalWidth
         val delRect = RectF(delLeft, kbTop + (rowHeight * 2) + (gapV / 2f), delLeft + functionalWidth, kbTop + (rowHeight * 3) - (gapV / 2f))
-        disguiseKeys.add(DisguiseKey("⌫", true, delRect))
+        overlaidKeys.add(OverlaidKey("⌫", true, delRect))
 
         // Row 4: ?123, comma, space, period, enter
         val r4Top = kbTop + (rowHeight * 3) + (gapV / 2f)
-        val r4Bottom = h - (gapV / 2f)
+        val r4Bottom = kbTop + (rowHeight * 4) - (gapV / 2f)
         val symWidth = functionalWidth
-        val enterWidth = functionalWidth * 1.15f
+        val enterWidth = functionalWidth * 1.2f
         val smallKeyWidth = r1KeyWidth
 
-        // ?123
-        disguiseKeys.add(DisguiseKey("?123", true, RectF(gapH, r4Top, gapH + symWidth, r4Bottom)))
-        // comma
+        overlaidKeys.add(OverlaidKey("?123", true, RectF(gapH, r4Top, gapH + symWidth, r4Bottom)))
         val commaLeft = gapH + symWidth + gapH
-        disguiseKeys.add(DisguiseKey(",", false, RectF(commaLeft, r4Top, commaLeft + smallKeyWidth, r4Bottom)))
-        // enter
+        overlaidKeys.add(OverlaidKey(",", true, RectF(commaLeft, r4Top, commaLeft + smallKeyWidth, r4Bottom)))
         val enterLeft = w - gapH - enterWidth
-        disguiseKeys.add(DisguiseKey("↵", true, RectF(enterLeft, r4Top, enterLeft + enterWidth, r4Bottom)))
-        // period
+        overlaidKeys.add(OverlaidKey("↵", true, RectF(enterLeft, r4Top, enterLeft + enterWidth, r4Bottom)))
         val periodLeft = enterLeft - gapH - smallKeyWidth
-        disguiseKeys.add(DisguiseKey(".", false, RectF(periodLeft, r4Top, periodLeft + smallKeyWidth, r4Bottom)))
-        // space
+        overlaidKeys.add(OverlaidKey(".", true, RectF(periodLeft, r4Top, periodLeft + smallKeyWidth, r4Bottom)))
         val spaceLeft = commaLeft + smallKeyWidth + gapH
         val spaceRight = periodLeft - gapH
-        disguiseKeys.add(DisguiseKey("Space", false, RectF(spaceLeft, r4Top, spaceRight, r4Bottom)))
+        overlaidKeys.add(OverlaidKey("", false, RectF(spaceLeft, r4Top, spaceRight, r4Bottom)))
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        // Background
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
 
         if (presentationMode == PatternPresentationMode.KEYBOARD_DISGUISE) {
-            drawKeyboardDisguise(canvas)
+            drawStealthKeyboardOverlay(canvas)
         } else {
             drawStandardGrid(canvas)
         }
     }
 
     private fun drawStandardGrid(canvas: Canvas) {
-        // 1. Top Header Bar
+        // 1. Header Toolbar
         val title = if (vaultType == VaultType.SECURITY) "🔒 Security Vault" else "🛡️ Privacy Vault"
-        textPaint.color = theme.textColor
-        textPaint.textAlign = Paint.Align.LEFT
-        canvas.drawText(title, 16f * density, topBarHeightPx * 0.65f, textPaint)
+        headerTextPaint.color = theme.textColor
+        headerTextPaint.textAlign = Paint.Align.LEFT
+        canvas.drawText(title, 16f * density, topBarHeightPx * 0.62f, headerTextPaint)
 
-        // Phone PIN pill: [📱 PIN]
+        // PIN Button
         val pinBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = theme.actionKeyColor
             style = Paint.Style.FILL
@@ -282,7 +340,7 @@ class VianPatternUnlockView(
         canvas.drawRoundRect(phonePinButtonRect, 6f * density, 6f * density, pinBgPaint)
         canvas.drawText("📱 PIN", phonePinButtonRect.centerX(), phonePinButtonRect.centerY() + (4f * density), pinTextPaint)
 
-        // Mode switch pill: [⌨ Disguise]
+        // Stealth Mode Toggle
         val toggleBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = theme.actionKeyColor
             style = Paint.Style.FILL
@@ -293,49 +351,28 @@ class VianPatternUnlockView(
             textAlign = Paint.Align.CENTER
         }
         canvas.drawRoundRect(modeToggleRect, 6f * density, 6f * density, toggleBgPaint)
-        canvas.drawText("⌨ Disguise", modeToggleRect.centerX(), modeToggleRect.centerY() + (4f * density), toggleTextPaint)
+        canvas.drawText("⌨ Stealth", modeToggleRect.centerX(), modeToggleRect.centerY() + (4f * density), toggleTextPaint)
 
-        // Close button: [✕]
+        // Top-Right Cross Button (✕)
         val closeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = theme.textColor
-            textSize = 18f * density
+            textSize = 20f * density
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText("✕", closeButtonRect.centerX(), closeButtonRect.centerY() + (6f * density), closeTextPaint)
+        canvas.drawText("✕", closeButtonRect.centerX(), closeButtonRect.centerY() + (7f * density), closeTextPaint)
 
         // 2. Connecting Lines
-        if (selectedDots.isNotEmpty()) {
-            val curLinePaint = when (unlockState) {
-                UnlockState.SUCCESS -> dotSuccessPaint
-                UnlockState.ERROR -> dotErrorPaint
-                else -> linePaint
-            }
+        drawConnectingLines(canvas, isStealth = false)
 
-            val path = Path()
-            val first = dotCenters[selectedDots[0]]
-            path.moveTo(first[0], first[1])
-
-            for (i in 1 until selectedDots.size) {
-                val pt = dotCenters[selectedDots[i]]
-                path.lineTo(pt[0], pt[1])
-            }
-
-            if (isTouching && unlockState == UnlockState.TOUCHING) {
-                path.lineTo(currentTouchX, currentTouchY)
-            }
-
-            canvas.drawPath(path, curLinePaint)
-        }
-
-        // 3. Dots
-        val dotRadius = 9f * density
+        // 3. 9 Dots
+        val dotRadius = 9.5f * density
         val haloRadius = 24f * density
 
         for (i in 0 until 9) {
             val cx = dotCenters[i][0]
             val cy = dotCenters[i][1]
-
             val isSelected = selectedDots.contains(i)
+
             if (isSelected) {
                 val curHaloPaint = when (unlockState) {
                     UnlockState.SUCCESS -> Paint(haloPaint).apply { color = 0x3310B981 }
@@ -356,48 +393,109 @@ class VianPatternUnlockView(
         }
     }
 
-    private fun drawKeyboardDisguise(canvas: Canvas) {
-        // 1. Top Decoy Bar
-        // Subtle toggle button on left, subtle decoy icon (clipboard / exit) on right
+    private fun drawStealthKeyboardOverlay(canvas: Canvas) {
+        // 1. Top Decoy Header Strip
+        // Discrete mode switch button on left
         val toggleBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = theme.actionKeyColor
             style = Paint.Style.FILL
         }
         val toggleTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = theme.hintColor
+            color = theme.textColor
             textSize = 11f * density
             textAlign = Paint.Align.CENTER
         }
         canvas.drawRoundRect(modeToggleRect, 6f * density, 6f * density, toggleBgPaint)
-        canvas.drawText("☷ Grid Mode", modeToggleRect.centerX(), modeToggleRect.centerY() + (4f * density), toggleTextPaint)
+        canvas.drawText("☷ Grid", modeToggleRect.centerX(), modeToggleRect.centerY() + (4f * density), toggleTextPaint)
 
-        // Decoy exit icon on right (looks like language/globe or subtle close)
-        val decoyTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = theme.hintColor
-            textSize = 16f * density
+        // Decoy suggestions placeholder in center
+        val decoyCenterY = topBarHeightPx * 0.62f
+        canvas.drawText("Suggestions", (modeToggleRect.left) / 2f, decoyCenterY, decoyToolbarTextPaint)
+
+        // Top-Right Discrete Cross Button (✕)
+        val closeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = (theme.textColor and 0x00FFFFFF) or 0x99000000.toInt()
+            textSize = 18f * density
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText("📋", closeButtonRect.centerX(), closeButtonRect.centerY() + (5f * density), decoyTextPaint)
+        canvas.drawText("✕", closeButtonRect.centerX(), closeButtonRect.centerY() + (6f * density), closeTextPaint)
 
-        // 2. Draw Disguise Keys (Exact look of standard keyboard)
-        val keyRadius = 8f * density
+        // 2. Draw Keycaps Overlay (Authentic HeliBoard appearance)
+        val keyRadius = theme.keyCornerRadiusDp * density
         val bevelInset = 1f * density
 
-        for (k in disguiseKeys) {
-            val bg = if (k.isAction) keycapActionPaint else keycapPaint
+        for (k in overlaidKeys) {
+            val isAction = k.isAction
+            val bg = if (isAction) keycapActionPaint else keycapPaint
+            val bevel = if (isAction) actionKeyBevelPaint else keyBevelPaint
 
             // Bottom bevel
-            canvas.drawRoundRect(k.bounds, keyRadius, keyRadius, keyBevelPaint)
+            canvas.drawRoundRect(k.bounds, keyRadius, keyRadius, bevel)
 
-            // Surface
+            // Top keycap surface
             val surface = RectF(k.bounds.left, k.bounds.top, k.bounds.right, k.bounds.bottom - bevelInset)
             canvas.drawRoundRect(surface, keyRadius, keyRadius, bg)
 
-            // Label
-            val tp = if (k.isAction) keyActionTextPaint else keyTextPaint
-            val textY = surface.centerY() + (tp.textSize / 3f)
-            canvas.drawText(k.label, surface.centerX(), textY, tp)
+            // Key label
+            if (k.label.isNotEmpty()) {
+                val tp = if (isAction) keyActionTextPaint else keyTextPaint
+                val textY = surface.centerY() + (tp.textSize / 3f)
+                canvas.drawText(k.label, surface.centerX(), textY, tp)
+            }
         }
+
+        // 3. Connecting Lines across stealth keyboard
+        drawConnectingLines(canvas, isStealth = true)
+
+        // 4. Subtly visible 9 Dots overlaid on top of keyboard
+        val subtleDotRadius = 8f * density
+        for (i in 0 until 9) {
+            val cx = dotCenters[i][0]
+            val cy = dotCenters[i][1]
+            val isSelected = selectedDots.contains(i)
+
+            if (isSelected) {
+                val curDotPaint = when (unlockState) {
+                    UnlockState.SUCCESS -> dotSuccessPaint
+                    UnlockState.ERROR -> dotErrorPaint
+                    else -> dotSelectedPaint
+                }
+                canvas.drawCircle(cx, cy, subtleDotRadius * 1.3f, curDotPaint)
+            } else {
+                // In stealth mode: dots are subtly visible markers
+                canvas.drawCircle(cx, cy, subtleDotRadius, dotSubtlePaint)
+                canvas.drawCircle(cx, cy, subtleDotRadius, dotSubtleRingPaint)
+            }
+        }
+    }
+
+    private fun drawConnectingLines(canvas: Canvas, isStealth: Boolean) {
+        if (selectedDots.isEmpty()) return
+
+        val curLinePaint = when (unlockState) {
+            UnlockState.SUCCESS -> dotSuccessPaint
+            UnlockState.ERROR -> dotErrorPaint
+            else -> if (isStealth) {
+                Paint(linePaint).apply { color = 0xAA0284C7.toInt() }
+            } else {
+                linePaint
+            }
+        }
+
+        val path = Path()
+        val first = dotCenters[selectedDots[0]]
+        path.moveTo(first[0], first[1])
+
+        for (i in 1 until selectedDots.size) {
+            val pt = dotCenters[selectedDots[i]]
+            path.lineTo(pt[0], pt[1])
+        }
+
+        if (isTouching && unlockState == UnlockState.TOUCHING) {
+            path.lineTo(currentTouchX, currentTouchY)
+        }
+
+        canvas.drawPath(path, curLinePaint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -406,23 +504,23 @@ class VianPatternUnlockView(
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                // Check if tapped Close button
+                // Top-Right Discrete Cross button (✕)
                 if (closeButtonRect.contains(x, y)) {
-                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    triggerMildHaptic()
                     onDismissToAlpha?.invoke()
                     return true
                 }
 
-                // Check if tapped Phone PIN button
-                if (phonePinButtonRect.contains(x, y)) {
-                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                // Phone PIN button (Standard Mode only)
+                if (presentationMode == PatternPresentationMode.STANDARD_GRID && phonePinButtonRect.contains(x, y)) {
+                    triggerMildHaptic()
                     onUsePhonePinClicked?.invoke()
                     return true
                 }
 
-                // Check if tapped Mode Toggle
+                // Mode toggle (Standard vs Stealth)
                 if (modeToggleRect.contains(x, y)) {
-                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    triggerMildHaptic()
                     presentationMode = if (presentationMode == PatternPresentationMode.STANDARD_GRID) {
                         PatternPresentationMode.KEYBOARD_DISGUISE
                     } else {
@@ -434,37 +532,24 @@ class VianPatternUnlockView(
                     return true
                 }
 
-                if (presentationMode == PatternPresentationMode.KEYBOARD_DISGUISE) {
-                    handleDisguiseTouch(x, y, isDown = true)
-                } else {
-                    handleGridTouchDown(x, y)
-                }
+                handleTouchDown(x, y)
                 return true
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (presentationMode == PatternPresentationMode.KEYBOARD_DISGUISE) {
-                    handleDisguiseTouch(x, y, isDown = false)
-                } else {
-                    handleGridTouchMove(x, y)
-                }
+                handleTouchMove(x, y)
                 return true
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (presentationMode == PatternPresentationMode.KEYBOARD_DISGUISE) {
-                    handleDisguiseRelease()
-                } else {
-                    handleGridTouchRelease()
-                }
+                handleTouchRelease()
                 return true
             }
         }
         return super.onTouchEvent(event)
     }
 
-    // --- Standard Grid Logic ---
-    private fun handleGridTouchDown(x: Float, y: Float) {
+    private fun handleTouchDown(x: Float, y: Float) {
         if (unlockState != UnlockState.IDLE) return
         resetState()
         isTouching = true
@@ -475,36 +560,36 @@ class VianPatternUnlockView(
         if (dotIdx != null) {
             selectedDots.add(dotIdx)
             unlockState = UnlockState.TOUCHING
-            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            triggerMildHaptic()
         }
         invalidate()
     }
 
-    private fun handleGridTouchMove(x: Float, y: Float) {
+    private fun handleTouchMove(x: Float, y: Float) {
         if (!isTouching) return
         currentTouchX = x
         currentTouchY = y
 
         val dotIdx = findDotNear(x, y)
         if (dotIdx != null && !selectedDots.contains(dotIdx)) {
-            // Check for intermediate dot jumping
+            // Check intermediate dot jumping (e.g., from 0 to 2 passes through 1)
             if (selectedDots.isNotEmpty()) {
                 val lastIdx = selectedDots.last()
                 val intermediate = getIntermediateDot(lastIdx, dotIdx)
                 if (intermediate != null && !selectedDots.contains(intermediate)) {
                     selectedDots.add(intermediate)
-                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    triggerMildHaptic()
                 }
             }
 
             selectedDots.add(dotIdx)
             unlockState = UnlockState.TOUCHING
-            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            triggerMildHaptic()
         }
         invalidate()
     }
 
-    private fun handleGridTouchRelease() {
+    private fun handleTouchRelease() {
         if (!isTouching) return
         isTouching = false
 
@@ -534,8 +619,13 @@ class VianPatternUnlockView(
         }
     }
 
+    private fun triggerMildHaptic() {
+        // Mild tactile vibration pulse on dot interaction
+        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+    }
+
     private fun findDotNear(x: Float, y: Float): Int? {
-        val touchThreshold = 36f * density
+        val touchThreshold = 38f * density
         for (i in 0 until 9) {
             val dist = hypot(x - dotCenters[i][0], y - dotCenters[i][1])
             if (dist <= touchThreshold) {
@@ -560,42 +650,8 @@ class VianPatternUnlockView(
         return null
     }
 
-    // --- Keyboard Disguise Logic ---
-    private fun handleDisguiseTouch(x: Float, y: Float, isDown: Boolean) {
-        if (isDown) {
-            selectedDisguiseSequence.clear()
-            lastTouchedKeyLabel = null
-        }
-
-        val key = disguiseKeys.find { it.bounds.contains(x, y) }
-        if (key != null && key.label != lastTouchedKeyLabel) {
-            lastTouchedKeyLabel = key.label
-            selectedDisguiseSequence.add(key.label)
-            // Tactical vibration pulse on key boundary crossing
-            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-        }
-    }
-
-    private fun handleDisguiseRelease() {
-        if (selectedDisguiseSequence.isEmpty()) return
-
-        val isVerified = MasterPatternStore.verifyDisguiseSequence(context, selectedDisguiseSequence, vaultType)
-        if (isVerified) {
-            performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-            postDelayed({
-                onUnlockSuccess?.invoke(vaultType)
-            }, 100L)
-        } else {
-            performHapticFeedback(HapticFeedbackConstants.REJECT)
-            selectedDisguiseSequence.clear()
-            lastTouchedKeyLabel = null
-        }
-    }
-
     private fun resetState() {
         selectedDots.clear()
-        selectedDisguiseSequence.clear()
-        lastTouchedKeyLabel = null
         unlockState = UnlockState.IDLE
         isTouching = false
     }

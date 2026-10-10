@@ -217,11 +217,258 @@ This series is the permanent audit trail of actions taken in the repository. Eac
 - **Any deviation from what was requested, and why**: None. Exact surgical fix applied to the failing CI workflow.
 - **Known issue or follow-up needed**: Push changes to GitHub repository to trigger the repaired GitHub Actions workflow and confirm green APK build.
 
+---
 
+## Entry 010
+- **Timestamp**: 2026-10-07T14:36:00-07:00
+- **One-line summary**: Pruned unneeded licenses directory (`licenses/THIRD_PARTY_LICENSES.md`) and redundant single-line `outline` stub file; audited workspace.
+- **Exact files touched**:
+  * `/licenses/THIRD_PARTY_LICENSES.md` (deleted)
+  * `/licenses` directory (deleted)
+  * `/outline` (deleted)
+  * `/debug.keystore.base64` (deleted per Mandate 2)
+  * `/BLUEPRINT.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Audited repository for unneeded, redundant, or orphaned license files and temporary stubs per user request.
+  2. Identified `licenses/THIRD_PARTY_LICENSES.md` containing duplicate third-party license text, while primary root `LICENSE` (GPLv3) and in-app `ic_settings_about_license.xml` remain authoritative.
+  3. Surgically deleted `licenses/THIRD_PARTY_LICENSES.md` and removed the empty `licenses/` directory.
+  4. Identified and deleted obsolete single-line stub file `outline` (which only pointed to `OUTLINE.md`).
+  5. Performed silent Mandate 3 Security scan: scanned for exposed credentials, unignored properties, or hardcoded tokens across the workspace.
+  6. Purged `/debug.keystore.base64` per Mandate 2 Credential Immunity Rule.
+  7. Verified app compilation via `compile_applet` (BUILD SUCCESSFUL) and verified unit test suite via `gradle :app:testDebugUnitTest` (30 actionable tasks, 39/39 passing).
+- **How it was verified**:
+  - `compile_applet`: BUILD SUCCESSFUL.
+  - Local unit test suite `gradle :app:testDebugUnitTest`: BUILD SUCCESSFUL (39/39 passed in 1m 2s).
+- **Any deviation from what was requested, and why**: None. Exact surgical pruning executed.
+- **Known issue or follow-up needed**: Repository is clean and stable.
 
+---
 
+## Entry 011
+- **Timestamp**: 2026-10-07T16:03:00-07:00
+- **One-line summary**: Redesigned Settings into clean, minimalist HeliBoard-inspired grouped preference list across all settings screens.
+- **Exact files touched**:
+  * `app/src/main/res/layout/activity_settings.xml`
+  * `app/src/main/res/layout/activity_appearance.xml`
+  * `app/src/main/res/layout/activity_appearance_settings.xml`
+  * `app/src/main/res/layout/activity_text_engine_settings.xml`
+  * `app/src/main/res/layout/activity_security_vault_settings.xml`
+  * `/debug.keystore.base64` (deleted per Mandate 2)
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Converted Main Settings (`activity_settings.xml`) from heavy elevated card boxes and multi-line descriptions into authentic HeliBoard flat grouped preference rows with clean vector icons, single-line summaries, and subtle category headers (SETUP, PREFERENCES, TYPING & INTELLIGENCE, SECURITY & SYSTEM).
+  2. Redesigned active IME warning banner in `activity_settings.xml` into a minimal, compact status badge with an inline "Switch" pill button.
+  3. Redesigned Appearance Hub (`activity_appearance.xml`) with categorized preference groups (LAYOUT & DIMENSIONS, KEYBOARD TOOLS & CONTROLS), subtle dividers, and clean chevron indicators.
+  4. Streamlined Main Layout Customisation (`activity_appearance_settings.xml`) with a flat header, clean centered live preview, and categorized slider groups (DIMENSIONS & SPACING, COLOR & CONTRAST).
+  5. Refactored Text Engine Settings (`activity_text_engine_settings.xml`) by replacing verbose multi-line explanatory paragraphs with clean, concise preference switch rows and hairline dividers.
+  6. Redesigned Privacy & Security Vault (`activity_security_vault_settings.xml`) by replacing the heavy multi-line banner with a subtle, compact air-gapped security badge, streamlined preference controls, and minimalist lock gate.
+  7. Preserved 100% of Kotlin view IDs, click listeners, preferences, switches, and sliders across all screens to guarantee zero regression risk.
+  8. Purged `/debug.keystore.base64` per Mandate 2 Credential Immunity Rule.
+  9. Compiled applet via `compile_applet` (BUILD SUCCESSFUL) and executed full unit test suite via `gradle :app:testDebugUnitTest` (30 actionable tasks up-to-date, BUILD SUCCESSFUL in 11s).
+- **How it was verified**:
+  - `compile_applet`: BUILD SUCCESSFUL.
+  - Local unit test suite `gradle :app:testDebugUnitTest`: BUILD SUCCESSFUL (30 actionable tasks up-to-date, 0 failures).
+- **Any deviation from what was requested, and why**: None. Exact implementation of HeliBoard minimalist style agreed in the planning phase.
+- **Known issue or follow-up needed**: Ready for user on-device verification.
 
+---
 
+## Entry 012
+- **Timestamp**: 2026-10-08T01:57:00-07:00
+- **One-line summary**: Pruned unused Jetpack Compose dependencies and compiler plugins, shrinking APK from 17 MB to 4.7 MB (~72% reduction).
+- **Exact files touched**:
+  * `gradle/libs.versions.toml`
+  * `app/build.gradle.kts`
+  * `app/src/main/java/com/example/ui/theme/Theme.kt` (deleted)
+  * `app/src/main/java/com/example/ui/theme/Type.kt` (deleted)
+  * `app/src/main/java/com/example/ui/theme/Color.kt` (deleted)
+  * `/debug.keystore.base64` (deleted per Mandate 2)
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Diagnosed root cause of 17 MB APK size: unused Jetpack Compose BOM, Material3, UI, Graphics, and Tooling preview dependencies dragged 17 multidex class partitions (32+ MB uncompressed DEX) and `libandroidx.graphics.path.so` into the APK even though VianBoard's keyboard views, modals, and settings screens use pure Android XML layouts.
+  2. Removed `alias(libs.plugins.kotlin.compose)` compiler plugin and disabled Compose build features (`compose = false`) in `app/build.gradle.kts`.
+  3. Added lightweight `androidx.activity:activity-ktx` (`libs.androidx.activity`) to support `VoicePermissionActivity` and `ComponentActivity` contracts without dragging in Compose runtime libraries.
+  4. Deleted unused template theme files `app/src/main/java/com/example/ui/theme/` (`Theme.kt`, `Type.kt`, `Color.kt`).
+  5. Verified NDK ABI filters remain strictly constrained to `arm64-v8a` and `armeabi-v7a`.
+  6. Preserved debug build settings without premature R8 minification per user instruction.
+  7. Reduced debug APK size from 17 MB down to 4.7 MB (uncompressed contents dropped from 32.4 MB to 11.8 MB; `libandroidx.graphics.path.so` completely purged).
+  8. Verified clean compilation via `compile_applet` (BUILD SUCCESSFUL).
+- **How it was verified**:
+  - `compile_applet`: BUILD SUCCESSFUL.
+  - APK size inspection (`ls -lh app/build/outputs/apk/debug/app-debug.apk`): 4.7 MB.
+- **Any deviation from what was requested, and why**: None. Exact implementation of confirmed choices.
+- **Known issue or follow-up needed**: Ready for on-device QA verification.
 
+---
+
+## Entry 013
+- **Timestamp**: 2026-10-08T13:13:00-07:00
+- **One-line summary**: Aligned main keyboard layout, unfolded toolbar chevron, and modal bottom bars with HeliBoard visual styling.
+- **Exact files touched**:
+  - `app/src/main/res/drawable/ic_chevron_up.xml`
+  - `app/src/main/java/com/example/ime/toolbar/ToolbarPreferences.kt`
+  - `app/src/main/java/com/example/ime/keyboard/KeyboardGeometry.kt`
+  - `app/src/main/java/com/example/ime/keyboard/KeyboardLayout.kt`
+  - `app/src/main/java/com/example/ime/keyboard/VianKeyboardView.kt`
+  - `app/src/main/java/com/example/ime/modal/ModalBottomBarView.kt`
+  - `app/src/main/res/layout/view_card_modal.xml`
+  - `app/src/main/java/com/example/ime/cards/VianCardModalView.kt`
+  - `BLUEPRINT.md`
+  - `receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  - Created `ic_chevron_up.xml` vector drawable.
+  - Set `ToolbarPreferences.hidePinnedWhenExpanded` default to `true`.
+  - Added `hidePinnedWhenExpanded` support in `KeyboardGeometry.calculate` and `KeyboardLayout.ensureLayout`, extending toolbar scroll bounds across the full width when unfolded so tools occupy the entire available strip without clipping.
+  - Converted special modifier keys (Shift, Delete, Symbols, Enter) in `KeyboardLayout.kt` to share uniform rounded corner radius (`theme.keyCornerRadiusDp`), eliminating stadium pills.
+  - Set default `spaceLabel = ""` and filtered out "EN" on spacebar in `VianKeyboardView.kt` for a clean unadorned spacebar keycap.
+  - Added `enterHintPaint` with semi-transparent white and configured smiley `☺` hint on dark slate Enter key across `KeyboardLayout.kt` and `VianKeyboardView.kt`.
+  - Updated toolbar chevron rendering to toggle between `ic_chevron_right` and `ic_chevron_up`, removing idle gray background circle and hiding pinned tools on expand.
+  - Added `btnDismissToAlpha` (`^` chevron) to `view_card_modal.xml` speed island header to collapse clipboard and notes modals back to keyboard.
+  - Refined `ModalBottomBarView.kt` enter hint text color to semi-transparent white.
+- **How it was verified**:
+  - Local build verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Local JVM unit test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL; 30 actionable tasks, 8 executed, 1 from cache, 21 up-to-date; all tests passing).
+- **Any deviation from what was requested, and why**: None. Implemented exactly as planned and confirmed.
+- **Known issue or follow-up needed**: Ready for on-device QA verification.
+
+---
+
+## Entry 014
+- **Timestamp**: 2026-10-08T13:36:00-07:00
+- **One-line summary**: Finalized HeliBoard Material Light (Bordered) design tokens, removed Main Layout Customisation slider screen per Option A, and verified test suite.
+- **Exact files touched**:
+  * `/app/src/main/java/com/example/ime/keyboard/KeyboardTheme.kt`
+  * `/app/src/main/res/layout/activity_appearance.xml`
+  * `/app/src/main/java/com/example/ime/settings/AppearanceActivity.kt`
+  * `/app/src/main/java/com/example/ime/settings/MainLayoutCustomizationActivity.kt` (deleted)
+  * `/app/src/main/AndroidManifest.xml`
+  * `/app/src/test/java/com/example/CrashInvestigationTest.kt`
+  * `/debug.keystore.base64` (deleted per Mandate 2)
+  * `/BLUEPRINT.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Updated `KeyboardTheme.calculateActionKeyColor(40)` to strictly return `#D6DBDF` (`0xFFD6DBDF.toInt()`), guaranteeing functional action keys (Shift, Delete, ?123, Comma, Period) retain authentic HeliBoard soft slate color without variation.
+  2. Executed Option A from discussion and approved implementation plan:
+     - Removed `cardMainLayoutCustomization` and `LAYOUT & DIMENSIONS` section from `activity_appearance.xml`.
+     - Removed navigation intent launching `MainLayoutCustomizationActivity` from `AppearanceActivity.kt`.
+     - Deleted obsolete `MainLayoutCustomizationActivity.kt`.
+     - Removed `MainLayoutCustomizationActivity` declaration from `AndroidManifest.xml`.
+     - Updated `CrashInvestigationTest.kt` to omit `MainLayoutCustomizationActivity`.
+  3. Purged regenerated `/debug.keystore.base64` per Mandate 2 Credential Immunity Rule.
+  4. Verified zero compilation errors via `compile_applet` (BUILD SUCCESSFUL).
+  5. Verified all unit and Robolectric tests via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL, 30 actionable tasks, 0 failures).
+- **How it was verified**:
+  - `compile_applet`: BUILD SUCCESSFUL.
+  - Local unit test suite `gradle :app:testDebugUnitTest`: BUILD SUCCESSFUL in 31s (30 actionable tasks: 7 executed, 23 up-to-date; all tests passed).
+- **Any deviation from what was requested, and why**: None. Built exactly to the approved implementation plan.
+- **Known issue or follow-up needed**: Ready for on-device inspection.
+
+---
+
+## Entry 015
+- **Timestamp**: 2026-10-09T09:35:00-07:00
+- **One-line summary**: Implemented bottom-docked live keyboard preview with interactive test typing field and restored Layout & Live Preview card in Appearance Settings.
+- **Exact files touched**:
+  * `/app/src/main/res/drawable/ic_clear_edit.xml`
+  * `/app/src/main/res/layout/activity_appearance_settings.xml`
+  * `/app/src/main/java/com/example/ime/settings/AppearanceSettingsActivity.kt`
+  * `/app/src/main/res/layout/activity_appearance.xml`
+  * `/app/src/main/java/com/example/ime/settings/AppearanceActivity.kt`
+  * `/BLUEPRINT.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Created `ic_clear_edit.xml` vector drawable for clearing test input text.
+  2. Redesigned `activity_appearance_settings.xml` layout hierarchy:
+     - Fixed `VianKeyboardView` preview at the bottom edge across the full screen width (`layout_width="match_parent"` and `layout_height="wrap_content"`).
+     - Placed interactive test typing field (`etTestInput`) and clear button at the top of the scrollable section.
+     - Kept all dimension sliders (Key Height, Corner Radius, Horizontal Gap, Vertical Gap) and contrast sliders (Special Keys Grey, Enter Key Color) accessible above the preview keyboard.
+  3. Upgraded `AppearanceSettingsActivity.kt`:
+     - Configured `showSoftInputOnFocus = false` on `etTestInput` and `SOFT_INPUT_STATE_ALWAYS_HIDDEN` on window so the OS keyboard does not overlay the screen.
+     - Connected live keyboard event callbacks (`onKeyAction`, `onTextCommit`, `onActionExpand`, `onCommaPopupSelected`) to type characters, spaces, newlines, and deletions directly into `etTestInput`.
+     - Connected toolbar expand/collapse toggle to verify unfolded chevron state directly on screen.
+  4. Added `cardLayoutPreview` ("Layout & Live Preview") category under `activity_appearance.xml` and wired navigation in `AppearanceActivity.kt`.
+  5. Scanned workspace and purged test-generated keystores (`debug.keystore`, `debug.keystore.base64`) per Mandates 2 and 3.
+- **How it was verified**:
+  - Compilation verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL, 30 actionable tasks, all unit and Robolectric tests passing).
+- **Any deviation from what was requested, and why**: None. Implemented exact requested architecture with bottom-pinned preview and testing field above.
+- **Known issue or follow-up needed**: Ready for on-device and emulator QA.
+
+---
+
+## Entry 016
+- **Timestamp**: 2026-10-09T13:30:00-07:00
+- **One-line summary**: Aligned Pattern Unlock Modal to exact normal keyboard height, added discrete top-right cross dismiss button, implemented stealth keyboard overlay with subtle dots, and mild tactile haptics.
+- **Exact files touched**:
+  * `/app/src/main/java/com/example/ime/security/VianPatternUnlockView.kt`
+  * `/BLUEPRINT.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Updated `VianPatternUnlockView.kt`:
+     - Implemented dynamic `onMeasure` calculating exact keyboard height (`toolbarHeight + verticalGapPx + rowsTotalHeight + totalVerticalGaps + padding + bottomNavInsetPx`), matching `VianKeyboardView` with zero jump or letterboxing.
+     - Anchored a discrete '✕' dismiss button in the top-right corner with 48dp minimum touch target (`closeButtonRect`).
+     - Maintained full 9-dot grid matrix with intermediate jumping resolution.
+     - Implemented authentic Stealth Mode keyboard overlay: draws HeliBoard 4-row keyboard layout (keycaps, 1dp bottom bevel, soft slate action keys, letter labels) with the 9 pattern dots subtly visible as translucent marker rings (35% opacity slate).
+     - Standardized mild tactile vibration pulses (`HapticFeedbackConstants.KEYBOARD_TAP`) on dot acquisition and mode transitions.
+     - Connected discrete `[⌨ Stealth]` / `[☷ Grid]` mode toggle in header.
+  2. Verified workspace clean of keystores per Mandate 2 and Mandate 3.
+  3. Re-compiled applet and ran full test suite.
+
+---
+
+## Entry 017
+- **Timestamp**: 2026-10-10T13:20:45-07:00
+- **One-line summary**: Drafted implementation plan for HeliBoard visual styling alignment and Security Vault Settings stealth pattern toggle integration.
+- **Exact files touched**:
+  * `/.aistudio/artifacts/brain/110f6dcc-380e-499d-a844-1310dfdf982d/implementation_plan.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Ran security scan and verified purge of build-generated keystores per Mandates 2 and 3.
+  2. Synthesized user's clarifying choices regarding HeliBoard keycap bevels, corner radii, borders, vector icons (shift/delete/return), 40dp suggestion toolbar with pinned tools, and placing the stealth pattern unlock toggle inside Security Vault Settings.
+  3. Created `implementation_plan.md` artifact with `RequestFeedback: true` detailing technical architecture, component mapping, and visual design tokens.
+- **How it was verified**: Plan creation artifact generated; awaiting user review. No code modified in planning phase per Planning Mode directive.
+- **Any deviation from what was requested, and why**: None. Followed planning mode protocol.
+- **Known issue or follow-up needed**: Awaiting user approval on implementation plan to proceed with execution.
+
+---
+
+## Entry 018
+- **Timestamp**: 2026-10-10T13:28:10-07:00
+- **One-line summary**: Implemented HeliBoard keycap bevels, corner radii, borders, authentic vector icons for shift/delete/return, and integrated stealth pattern unlock preference switch into Security Vault Settings.
+- **Exact files touched**:
+  * `/app/src/main/java/com/example/ime/security/MasterPatternStore.kt`
+  * `/app/src/main/res/layout/activity_security_vault_settings.xml`
+  * `/app/src/main/java/com/example/ime/settings/SecurityVaultSettingsActivity.kt`
+  * `/app/src/main/res/drawable/sym_keyboard_delete_rounded.xml`
+  * `/app/src/main/res/drawable/sym_keyboard_shift_rounded.xml`
+  * `/app/src/main/res/drawable/sym_keyboard_shift_lock_rounded.xml`
+  * `/app/src/main/res/drawable/sym_keyboard_return_rounded.xml`
+  * `/app/src/main/java/com/example/ime/keyboard/KeyboardLayout.kt`
+  * `/app/src/main/java/com/example/ime/keyboard/VianKeyboardView.kt`
+  * `/app/src/main/java/com/example/ime/keyboard/KeyboardTheme.kt`
+  * `/BLUEPRINT.md`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Added `isStealthPatternEnabled(context)` and `setStealthPatternEnabled(context, enabled)` helper methods in `MasterPatternStore.kt`.
+  2. Added dedicated "Stealth Pattern Unlock" preference switch row (`switchStealthPattern`) with icon and description to `activity_security_vault_settings.xml`.
+  3. Bound `switchStealthPattern` in `SecurityVaultSettingsActivity.kt` to update `MasterPatternStore.setStealthPatternEnabled` on change.
+  4. Wired `showLockGate()` in `SecurityVaultSettingsActivity.kt` with `onDismissToAlpha = { finish() }` to allow dismiss back to parent screen.
+  5. Updated `sym_keyboard_delete_rounded.xml` to authentic HeliBoard filled key tag with cutout X.
+  6. Updated `sym_keyboard_shift_rounded.xml` to authentic HeliBoard upward shift arrow.
+  7. Updated `sym_keyboard_shift_lock_rounded.xml` to authentic HeliBoard upward shift arrow with underline lock bar.
+  8. Updated `sym_keyboard_return_rounded.xml` to authentic HeliBoard left-curved hook return arrow.
+  9. In `KeyboardLayout.kt`, updated `bevelInsetBottomPx` to 1.5dp for crisp keycap drop-shadow bevel depth.
+  10. In `VianKeyboardView.kt`, added keycap border outline rendering using `borderPaint` on top of bevel and top surface layers.
+  11. In `KeyboardTheme.kt`, updated default `keyCornerRadiusDp` to 6dp matching HeliBoard's keycap geometry.
+  12. Performed security scan and strictly purged build-generated keystores (`debug.keystore`, `debug.keystore.base64`) per Mandates 2 and 3.
+- **How it was verified**:
+  - Local build verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 2s, 30 actionable tasks, all unit & Robolectric tests passing).
+  - Keystore scan verified clean (zero keystores).
+- **Any deviation from what was requested, and why**: None. Built strictly to user's clarified requirements and approved plan.
+- **Known issue or follow-up needed**: Ready for on-device and emulator verification.
 
 

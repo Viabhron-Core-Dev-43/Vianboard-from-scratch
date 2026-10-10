@@ -71,6 +71,17 @@ class SecurityVaultSettingsActivity : Activity() {
             Toast.makeText(this, "Auth Mode: ${if (isChecked) "Biometric Only" else "Pattern + Phone PIN"}", Toast.LENGTH_SHORT).show()
         }
 
+        val switchStealth = findViewById<Switch>(R.id.switchStealthPattern)
+        switchStealth.isChecked = com.example.ime.security.MasterPatternStore.isStealthPatternEnabled(this)
+        switchStealth.setOnCheckedChangeListener { _, isChecked ->
+            com.example.ime.security.MasterPatternStore.setStealthPatternEnabled(this, isChecked)
+            Toast.makeText(
+                this,
+                if (isChecked) "Stealth Pattern Enabled (Keyboard Disguise)" else "Standard Pattern Grid Enabled",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
         btnToggleReveal = findViewById(R.id.btnToggleReveal)
         btnToggleReveal.setOnClickListener {
             isPlaintextRevealed = !isPlaintextRevealed
@@ -143,6 +154,9 @@ class SecurityVaultSettingsActivity : Activity() {
                 VaultSessionManager.unlockPrivacy(VaultSessionManager.PRIVACY_SESSION_DEFAULT_MS)
                 showVaultDashboard()
                 Toast.makeText(this@SecurityVaultSettingsActivity, "Vault Unlocked (Session: 5m)", Toast.LENGTH_SHORT).show()
+            }
+            onDismissToAlpha = {
+                finish()
             }
             onUsePhonePinClicked = {
                 launchPhonePinUnlock()

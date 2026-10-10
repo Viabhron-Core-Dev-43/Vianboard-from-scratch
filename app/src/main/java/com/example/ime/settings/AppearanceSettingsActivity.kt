@@ -2,16 +2,25 @@ package com.example.ime.settings
 
 import android.app.Activity
 import android.os.Bundle
+import android.text.InputType
+import android.view.WindowManager
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import com.example.R
+import com.example.ime.keyboard.KeyData
+import com.example.ime.keyboard.KeyType
 import com.example.ime.keyboard.KeyboardTheme
 import com.example.ime.keyboard.VianKeyboardView
 
 open class AppearanceSettingsActivity : Activity() {
 
     private lateinit var livePreviewKeyboard: VianKeyboardView
+    private lateinit var etTestInput: EditText
+    private lateinit var btnClearInput: ImageView
+
     private lateinit var tvHeightLabel: TextView
     private lateinit var tvRadiusLabel: TextView
     private lateinit var tvHGapLabel: TextView
@@ -32,7 +41,20 @@ open class AppearanceSettingsActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_appearance_settings)
 
+        // Ensure soft keyboard does not automatically pop up over the preview screen
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+
         livePreviewKeyboard = findViewById(R.id.livePreviewKeyboard)
+        etTestInput = findViewById(R.id.etTestInput)
+        btnClearInput = findViewById(R.id.btnClearInput)
+
+        // Prevent system soft keyboard when focusing test input field, letting the user test with the live preview below
+        etTestInput.showSoftInputOnFocus = false
+
+        btnClearInput.setOnClickListener {
+            etTestInput.setText("")
+        }
+
         tvHeightLabel = findViewById(R.id.tvHeightLabel)
         tvRadiusLabel = findViewById(R.id.tvRadiusLabel)
         tvHGapLabel = findViewById(R.id.tvHGapLabel)
@@ -52,6 +74,69 @@ open class AppearanceSettingsActivity : Activity() {
 
         loadCurrentSettings()
         setupListeners()
+        setupKeyboardInteractivity()
+    }
+
+    private fun setupKeyboardInteractivity() {
+        // Wire live key events to test input field
+        livePreviewKeyboard.onKeyAction = { key: KeyData ->
+            handleKeyboardKey(key)
+        }
+
+        livePreviewKeyboard.onTextCommit = { text: String ->
+            insertText(text)
+        }
+
+        livePreviewKeyboard.onActionExpand = {
+            livePreviewKeyboard.toggleToolbarExpand()
+        }
+
+        livePreviewKeyboard.onToolbarToolClick = { tool ->
+            // Provide feedback when toolbar actions are tapped in live preview
+            val title = getString(tool.titleResId)
+            android.widget.Toast.makeText(this, "Tool: $title", android.widget.Toast.LENGTH_SHORT).show()
+        }
+
+        livePreviewKeyboard.onCommaPopupSelected = { item ->
+            insertText("$item ")
+        }
+    }
+
+    private fun handleKeyboardKey(key: KeyData) {
+        when (key.type) {
+            KeyType.CHARACTER -> {
+                val textToInsert = if (key.label.isNotEmpty()) key.label else key.code.toChar().toString()
+                insertText(textToInsert)
+            }
+            KeyType.SPACE -> {
+                insertText(" ")
+            }
+            KeyType.DELETE -> {
+                deleteLastChar()
+            }
+            KeyType.ENTER -> {
+                insertText("\n")
+            }
+            else -> {
+                // Other control keys (Shift, Symbols) are handled internally by VianKeyboardView
+            }
+        }
+    }
+
+    private fun insertText(text: String) {
+        val start = Math.max(etTestInput.selectionStart, 0)
+        val end = Math.max(etTestInput.selectionEnd, 0)
+        etTestInput.text.replace(Math.min(start, end), Math.max(start, end), text, 0, text.length)
+    }
+
+    private fun deleteLastChar() {
+        val start = etTestInput.selectionStart
+        val end = etTestInput.selectionEnd
+        if (start != end) {
+            etTestInput.text.delete(Math.min(start, end), Math.max(start, end))
+        } else if (start > 0) {
+            etTestInput.text.delete(start - 1, start)
+        }
     }
 
     private fun loadCurrentSettings() {

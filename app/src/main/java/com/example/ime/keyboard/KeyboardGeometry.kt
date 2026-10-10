@@ -28,6 +28,7 @@ class KeyboardGeometry(
     val verticalGapDp: Float,
     val pinnedToolsCount: Int,
     val expandedToolsCount: Int,
+    val hidePinnedWhenExpanded: Boolean = true,
 
     // 1. Toolbar Bounds & Controls
     val toolbarBounds: RectF,
@@ -84,7 +85,8 @@ class KeyboardGeometry(
         currentMode: KeyboardMode,
         theme: KeyboardTheme,
         pinnedCount: Int,
-        expandedCount: Int
+        expandedCount: Int,
+        hidePinned: Boolean = true
     ): Boolean {
         return width == w &&
                 height == h &&
@@ -95,7 +97,8 @@ class KeyboardGeometry(
                 horizontalGapDp == theme.horizontalGapDp &&
                 verticalGapDp == theme.verticalGapDp &&
                 pinnedToolsCount == pinnedCount &&
-                expandedToolsCount == expandedCount
+                expandedToolsCount == expandedCount &&
+                hidePinnedWhenExpanded == hidePinned
     }
 
     companion object {
@@ -132,7 +135,8 @@ class KeyboardGeometry(
             pinnedTools: List<ToolbarTool>,
             expandedTools: List<ToolbarTool>,
             bottomInsetPx: Float,
-            rowDefinitions: List<List<KeyData>>
+            rowDefinitions: List<List<KeyData>>,
+            hidePinnedWhenExpanded: Boolean = true
         ): KeyboardGeometry {
             val paddingHPx = HELIBOARD_PADDING_DP * density
             val paddingVPx = HELIBOARD_PADDING_DP * density
@@ -234,7 +238,10 @@ class KeyboardGeometry(
             val centerDotsY = divCenterY + (7f * density)
 
             // Expanded Scrollable Tools Tray Geometry: uniform 36dp buttons with 6dp spacing
-            val toolbarScrollBounds = rectF(middleLeft, toolbarBounds.top, middleRight, toolbarBounds.bottom)
+            // When hidePinnedWhenExpanded is true, full-width editing action strip spans from middleLeft to toolbarBounds.right
+            val expandedRight = if (hidePinnedWhenExpanded) toolbarBounds.right else middleRight
+            val expandedAreaWidth = (expandedRight - middleLeft).coerceAtLeast(0f)
+            val toolbarScrollBounds = rectF(middleLeft, toolbarBounds.top, expandedRight, toolbarBounds.bottom)
             val toolsToRender = expandedTools.ifEmpty {
                 ToolbarTool.values().filter { it.isDefaultExpanded }
             }
@@ -242,7 +249,7 @@ class KeyboardGeometry(
             val totalContentWidth = if (toolsToRender.isNotEmpty()) {
                 (toolBtnWidth * toolsToRender.size) + (spacingPx * (toolsToRender.size - 1))
             } else 0f
-            val maxToolbarScrollOffset = (totalContentWidth - middleAreaWidth).coerceAtLeast(0f)
+            val maxToolbarScrollOffset = (totalContentWidth - expandedAreaWidth).coerceAtLeast(0f)
 
             val expandedToolBounds = ArrayList<RectF>(toolsToRender.size)
             val expandedIconBounds = ArrayList<Rect>(toolsToRender.size)
@@ -356,6 +363,7 @@ class KeyboardGeometry(
                 verticalGapDp = theme.verticalGapDp,
                 pinnedToolsCount = pinnedTools.size,
                 expandedToolsCount = expandedTools.size,
+                hidePinnedWhenExpanded = hidePinnedWhenExpanded,
                 toolbarBounds = toolbarBounds,
                 anchorKeyBounds = anchorKeyBounds,
                 anchorIconBounds = anchorIconBounds,

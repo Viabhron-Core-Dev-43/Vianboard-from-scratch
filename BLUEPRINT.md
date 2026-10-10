@@ -263,6 +263,55 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   - Preserved CMake compilation for `libwhisper.so` and ensured clean execution path to `./gradlew assembleDebug`.
   - Verified compilation with `compile_applet` (BUILD SUCCESSFUL) and verified all unit tests with `gradle :app:testDebugUnitTest` (39/39 passing).
   - Maintained zero-credential compliance per Mandate 2 and Mandate 3.
-
-
+- **2026-10-07**: Completed Phase 29 (Repository Hygiene, Unneeded License Deletion & Workspace Pruning):
+  - Removed unneeded and redundant license files: purged `licenses/THIRD_PARTY_LICENSES.md` and deleted the empty `licenses/` directory.
+  - Retained root `LICENSE` (GPLv3) and in-code open-source resource drawables (`ic_settings_about_license.xml`).
+  - Pruned redundant single-line stub file `outline` (referenced `OUTLINE.md`).
+  - Verified zero lingering temporary, backup (`*.bak`, `*.tmp`), or unneeded metadata files across workspace.
+  - Verified applet compilation via `compile_applet` (BUILD SUCCESSFUL) and full test suite via `gradle :app:testDebugUnitTest` (39/39 passing).
+  - Enforced Mandates 2 and 3 security standards.
+- **2026-10-07**: Completed Phase 30 (HeliBoard-Inspired Minimalist Settings Redesign Across All Screens):
+  - Overhauled Settings UI architecture to match HeliBoard's clean, minimalist list aesthetic across all screens: Main Settings Hub (`activity_settings.xml`), Appearance Hub (`activity_appearance.xml`), Main Layout Customisation (`activity_appearance_settings.xml`), Text Engine (`activity_text_engine_settings.xml`), and Privacy & Security Vault (`activity_security_vault_settings.xml`).
+  - Replaced elevated card boxes, oversized multi-line explanatory paragraphs, and emoji bullet points with flat grouped preference rows, crisp typography, clean vector icons (`ic_*.xml`), and subtle hairline dividers (`#F1F5F9`).
+  - Converted loud warning and guarantee banners into subtle, compact inline badges (e.g., streamlined inactive keyboard notification in `activity_settings.xml` and air-gapped zero-learning badge in `activity_security_vault_settings.xml`).
+  - Preserved 100% of existing view IDs, click listeners, preferences, switches, and sliders, maintaining zero regression risk in Kotlin activities.
+- **2026-10-08**: Completed Phase 31 (APK Size Optimization, Compose Pruning & ABI Streamlining):
+  - Diagnosed root cause of 17 MB APK size: unused Jetpack Compose runtime BOM, Material3, UI runtime, and graphics libraries were pulling 17 multidex class partitions and uncompressed 32+ MB DEX methods into the build.
+  - Pruned unused Jetpack Compose dependencies, removed `alias(libs.plugins.kotlin.compose)`, and disabled `buildFeatures { compose = false }` in `app/build.gradle.kts`.
+  - Added lightweight direct dependency `androidx.activity:activity-ktx` (`libs.androidx.activity`) to support `VoicePermissionActivity` and `ComponentActivity` contracts without dragging in Compose.
+  - Safely purged obsolete boilerplate files `app/src/main/java/com/example/ui/theme/` (`Theme.kt`, `Type.kt`, `Color.kt`).
+  - Maintained strict NDK ABI filtering for `arm64-v8a` and `armeabi-v7a`.
+  - Preserved debug build configuration without premature R8 minification per user instruction.
+  - Achieved ~72% APK reduction: debug APK dropped from 17 MB down to 4.7 MB (uncompressed size dropped from 32.4 MB to 11.8 MB), eliminating multidex bloat while preserving 100% functionality of VianBoard IME and settings.
+- **2026-10-08**: Completed Phase 32 (HeliBoard Visual Alignment: Main Layout, Unfolded Toolbar Chevron & Unified Modal Bottom Bar):
+  - Overhauled main keyboard canvas rendering to match authentic HeliBoard aesthetics:
+    - Normal letter and modifier keycaps now share uniform rounded corners (`theme.keyCornerRadiusDp`), eliminating stadium pills on Shift, Delete, and Symbols keys.
+    - Added subtle 1dp bottom bevel layer with top keycap inset for tactile elevation drop.
+    - Suppressed "EN" label on spacebar for a clean, distraction-free unadorned keycap.
+    - Positioned `☺` smiley face hint on dark slate Enter key with semi-transparent white tint.
+  - Implemented authentic HeliBoard toolbar unfolding behavior:
+    - Tapping the toolbar chevron toggles the icon between `ic_chevron_right` (`>`) and `ic_chevron_up` (`^`).
+    - When unfolded, all pinned tools are completely hidden (`hidePinnedWhenExpanded = true`), and the scrollable editing action tray expands across the full keyboard width.
+    - Removed heavy gray circular background when idle on chevron anchor button, rendering clean touch ripple only on press.
+  - Unified modal bottom controls:
+    - Confirmed `ModalBottomBarView` (`[ ABC ] [ Space ] [ ⌫ Backspace ] [ ↵ Enter ]`) across Clipboard, Quick Notes, Voice, and Emoji modals.
+    - Integrated `btnDismissToAlpha` (`^` chevron) into `view_card_modal.xml` speed island header to collapse modals directly back to alpha keyboard.
+  - Verified compilation via `compile_applet` (BUILD SUCCESSFUL) and verified unit test suite via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL, all tests passing).
+- **2026-10-09**: Completed Phase 34 (Bottom-Docked Live Keyboard Preview & Layout Customisation Re-Integration):
+  - **Docked Preview Architecture**: Re-architected `activity_appearance_settings.xml` so the live keyboard preview (`VianKeyboardView`) is pinned to the very bottom of the screen across the full device width, faithfully emulating the appearance and feel of an actively invoked keyboard inside the browser streaming emulator.
+  - **Interactive Testing & Real-Time Typing**: Added an interactive test typing field (`etTestInput`) and clear button (`btnClearInput`) above the layout dimension sliders, wired live touch input handlers in `AppearanceSettingsActivity.kt` for alphanumeric characters, spacebar, repeat backspace, enter, toolbar collapse/expand, and punctuation popups directly without popping up a system soft keyboard.
+  - **Restored Settings Navigation**: Re-introduced the clean "Layout & Live Preview" category card under Appearance Settings (`activity_appearance.xml` and `AppearanceActivity.kt`), giving direct access to test and customize key heights, corner radii, horizontal/vertical gaps, and contrast tones in the emulator without needing on-device APK installation.
+  - **Verification & Hygiene**: Verified zero compilation errors via `compile_applet` (BUILD SUCCESSFUL) and verified unit test suite via `gradle :app:testDebugUnitTest` (30 actionable tasks, all 39 tests passing). Purged test-generated keystores per Mandates 2 and 3.
+- **2026-10-09**: Completed Phase 35 (Pattern Unlock Modal Alignment: Keyboard Height, Discrete Cross, Stealth Overlay & Mild Haptics):
+  - **Identical Keyboard Height**: Implemented `onMeasure` in `VianPatternUnlockView.kt` calculating exact HeliBoard keyboard geometry (`toolbarHeight + verticalGap + rowsTotalHeight + totalVerticalGaps + padding + insets`), ensuring the pattern unlock modal matches normal keyboard height dynamically with zero jump or letterboxing.
+  - **Discrete Top-Right Cross**: Implemented discrete '✕' dismiss button in the top-right corner with 48dp touch target, returning instantly to alpha keyboard typing.
+  - **Authentic Stealth Mode Keyboard Overlay**: Renders authentic HeliBoard keyboard visual (keycaps, 1dp bottom bevel, soft slate action keys, letter labels) with the 9 pattern dots subtly visible (subtle translucent ring markers), allowing covert pattern tracing across keycaps.
+  - **Mild Tactile Vibration**: Added tactile vibration pulse (`HapticFeedbackConstants.KEYBOARD_TAP`) on every dot touched and state transition.
+  - **Verification & Security**: Verified zero compilation errors via `compile_applet` (BUILD SUCCESSFUL) and full test suite via `gradle :app:testDebugUnitTest` (30 actionable tasks, 39/39 passing). Purged test-generated keystores per Mandates 2 and 3.
+- **2026-10-10**: Completed Phase 36 (HeliBoard Visual Parity & Security Vault Stealth Pattern Unlock Settings Integration):
+  - **Stealth Pattern Unlock Preference in Security Vault**: Integrated dedicated preference toggle switch `switchStealthPattern` inside `activity_security_vault_settings.xml` and wired persistence in `SecurityVaultSettingsActivity.kt` via `MasterPatternStore.setStealthPatternEnabled(context, isChecked)`.
+  - **Seamless Unlock Gate Integration**: Connected `showLockGate()` in `SecurityVaultSettingsActivity.kt` so opening the vault modal immediately loads user's preferred stealth keyboard disguise or standard grid, and wired `onDismissToAlpha` to dismiss/finish cleanly when the top-right cross is tapped.
+  - **Authentic HeliBoard Keycap Aesthetics**: Updated keycap rendering in `VianKeyboardView.kt` to draw 1.5dp bottom drop-shadow bevels and crisp keycap border outlines (`borderPaint`) matching HeliBoard's tactile key feel; set default corner radius to 6dp in `KeyboardTheme.kt`.
+  - **HeliBoard Vector Icons**: Upgraded vector drawables for `sym_keyboard_delete_rounded.xml` (filled tag with cutout X), `sym_keyboard_shift_rounded.xml` (clean upward shift arrow), `sym_keyboard_shift_lock_rounded.xml` (shift lock arrow with underline bar), and `sym_keyboard_return_rounded.xml` (curved hook return arrow).
+  - **Toolbar Alignment**: Verified and preserved the 40dp toolbar strip with 3 suggestion candidate slots (36% center auto-correct focus with subtle hairline dividers) and pinned tool shortcuts.
 

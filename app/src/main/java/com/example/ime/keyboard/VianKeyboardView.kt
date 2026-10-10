@@ -107,6 +107,10 @@ class VianKeyboardView @JvmOverloads constructor(
         textAlign = Paint.Align.RIGHT
         typeface = Typeface.DEFAULT
     }
+    private val enterHintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.RIGHT
+        typeface = Typeface.DEFAULT
+    }
     private val toolbarTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create("sans-serif", Typeface.NORMAL)
@@ -326,7 +330,7 @@ class VianKeyboardView @JvmOverloads constructor(
         // HeliBoard Rounded Base Border bevel colors
         keyBevelPaint.color = theme.keyBottomBevelColor
         actionKeyBevelPaint.color = theme.actionKeyBevelColor
-        enterKeyBevelPaint.color = 0xFF263238.toInt()
+        enterKeyBevelPaint.color = theme.enterKeyBevelColor
 
         suggestionDividerPaint.color = (theme.textColor and 0x00FFFFFF) or 0x26000000
         suggestionDividerPaint.strokeWidth = 1f * density
@@ -345,6 +349,9 @@ class VianKeyboardView @JvmOverloads constructor(
 
         hintPaint.color = theme.hintColor
         hintPaint.textSize = 10.5f * density
+
+        enterHintPaint.color = 0xB3FFFFFF.toInt()
+        enterHintPaint.textSize = 10f * density
 
         toolbarTextPaint.color = theme.textColor
         toolbarTextPaint.textSize = 14.5f * density
@@ -453,7 +460,7 @@ class VianKeyboardView @JvmOverloads constructor(
 
         // 2. Draw Top Toolbar Items
         if (layout.isToolbarExpanded && layout.toolbarScrollBounds.width() > 0) {
-            // A. Draw Anchor Key first (fixed, non-scrolling, 36dp square with 29dp circular background)
+            // A. Draw Anchor Key first (fixed, non-scrolling, 36dp square, circular button)
             val anchorKey = layout.toolbarKeys.firstOrNull { it.type == KeyType.ACTION_EXPAND }
             if (anchorKey != null) {
                 val cx = (anchorKey.bounds.left + anchorKey.bounds.right) / 2f
@@ -461,9 +468,12 @@ class VianKeyboardView @JvmOverloads constructor(
                 val bgCircleRadius = 14.5f * density
                 val bgPaint = if (anchorKey.isPressed) pressedKeyPaint else actionKeyPaint
                 canvas.drawCircle(cx, cy, bgCircleRadius, bgPaint)
-                val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right
+                val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_right
                 val iconRes = if (layout.isIncognitoActive) R.drawable.sym_keyboard_incognito_lxx else chevronRes
                 drawCachedIcon(canvas, anchorKey.iconBounds, iconRes, theme.textColor)
+
+                val divX = anchorKey.bounds.right + (3f * density)
+                canvas.drawLine(divX, geo.dividerTopY, divX, geo.dividerBottomY, suggestionDividerPaint)
             }
 
             // B. Clip and translate scrollable tools tray (tools in middle)
@@ -490,17 +500,19 @@ class VianKeyboardView @JvmOverloads constructor(
             }
             canvas.restore()
 
-            // C. Draw docked pinned tools (fixed on right edge, 36dp square vertically centered)
-            for (key in layout.toolbarKeys) {
-                if (key.code !in -400 downTo -499) continue
-                val toolCx = (key.bounds.left + key.bounds.right) / 2f
-                val toolCy = (key.bounds.top + key.bounds.bottom) / 2f
-                if (key.isPressed) {
-                    canvas.drawCircle(toolCx, toolCy, 14.5f * density, pressedKeyPaint)
-                }
-                if (key.type == KeyType.TOOLBAR_TOOL) {
-                    key.tool?.let { tool ->
-                        drawCachedIcon(canvas, key.iconBounds, tool.iconResId, theme.textColor)
+            // C. Draw docked pinned tools (fixed on right edge, only if not hidden when expanded)
+            if (!layout.hidePinnedWhenExpanded) {
+                for (key in layout.toolbarKeys) {
+                    if (key.code !in -400 downTo -499) continue
+                    val toolCx = (key.bounds.left + key.bounds.right) / 2f
+                    val toolCy = (key.bounds.top + key.bounds.bottom) / 2f
+                    if (key.isPressed) {
+                        canvas.drawCircle(toolCx, toolCy, 14.5f * density, pressedKeyPaint)
+                    }
+                    if (key.type == KeyType.TOOLBAR_TOOL) {
+                        key.tool?.let { tool ->
+                            drawCachedIcon(canvas, key.iconBounds, tool.iconResId, theme.textColor)
+                        }
                     }
                 }
             }
@@ -520,9 +532,12 @@ class VianKeyboardView @JvmOverloads constructor(
                     val bgCircleRadius = 14.5f * density
                     val bgPaint = if (key.isPressed) pressedKeyPaint else actionKeyPaint
                     canvas.drawCircle(cx, cy, bgCircleRadius, bgPaint)
-                    val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right
+                    val chevronRes = if (layout.isToolbarExpanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_right
                     val iconRes = if (layout.isIncognitoActive) R.drawable.sym_keyboard_incognito_lxx else chevronRes
                     drawCachedIcon(canvas, key.iconBounds, iconRes, theme.textColor)
+
+                    val divX = key.bounds.right + (3f * density)
+                    canvas.drawLine(divX, geo.dividerTopY, divX, geo.dividerBottomY, suggestionDividerPaint)
                 } else if (key.type == KeyType.TOOLBAR_TOOL) {
                     val toolCx = (key.bounds.left + key.bounds.right) / 2f
                     val toolCy = (key.bounds.top + key.bounds.bottom) / 2f
@@ -596,7 +611,7 @@ class VianKeyboardView @JvmOverloads constructor(
 
         // 3. Draw Main Keys
         for (key in layout.keys) {
-            val isActionKey = key.type != KeyType.CHARACTER && key.type != KeyType.SPACE && key.type != KeyType.COMMA && key.type != KeyType.PERIOD
+            val isActionKey = key.type != KeyType.CHARACTER && key.type != KeyType.SPACE
             val isEnter = key.type == KeyType.ENTER
 
             val currentBgPaint = when {
@@ -611,6 +626,9 @@ class VianKeyboardView @JvmOverloads constructor(
             if (key.isPressed) {
                 // Key pressed: flat depressed surface
                 canvas.drawRoundRect(key.bounds, currentRadius, currentRadius, pressedKeyPaint)
+                if (theme.borderWidthDp > 0f && borderPaint.strokeWidth > 0f) {
+                    canvas.drawRoundRect(key.bounds, currentRadius, currentRadius, borderPaint)
+                }
             } else {
                 // 1. Bottom bevel layer (HeliBoard layer-list reproduction: only bottom edge shows dark bevel)
                 val bevelPaint = when {
@@ -620,8 +638,13 @@ class VianKeyboardView @JvmOverloads constructor(
                 }
                 canvas.drawRoundRect(key.bounds, currentRadius, currentRadius, bevelPaint)
 
-                // 2. Top keycap surface inset at bottom by 1dp (precalculated in key.topCapBounds)
+                // 2. Top keycap surface inset at bottom by bevel height (precalculated in key.topCapBounds)
                 canvas.drawRoundRect(key.topCapBounds, currentRadius, currentRadius, currentBgPaint)
+
+                // 3. Crisp keycap border matching HeliBoard
+                if (theme.borderWidthDp > 0f && borderPaint.strokeWidth > 0f) {
+                    canvas.drawRoundRect(key.topCapBounds, currentRadius, currentRadius, borderPaint)
+                }
             }
 
             // Key label or custom vector icon
@@ -642,7 +665,7 @@ class VianKeyboardView @JvmOverloads constructor(
                 }
                 else -> {
                     val paintToUse = when {
-                        key.type == KeyType.CHARACTER || key.type == KeyType.SPACE || key.type == KeyType.COMMA || key.type == KeyType.PERIOD -> textPaint
+                        key.type == KeyType.CHARACTER || key.type == KeyType.SPACE -> textPaint
                         else -> actionTextPaint
                     }
 
@@ -668,7 +691,9 @@ class VianKeyboardView @JvmOverloads constructor(
 
             // Hint label (using precalculated hintX, hintY)
             if (theme.showHints && key.hintLabel != null) {
-                if (key.type != KeyType.ENTER && key.type != KeyType.SPACE) {
+                if (key.type == KeyType.ENTER) {
+                    canvas.drawText(key.hintLabel, key.hintX, key.hintY, enterHintPaint)
+                } else if (key.type != KeyType.SPACE) {
                     canvas.drawText(key.hintLabel, key.hintX, key.hintY, hintPaint)
                 }
             }
@@ -1043,11 +1068,12 @@ class VianKeyboardView @JvmOverloads constructor(
     }
 
     fun updateSpaceLabel(label: String) {
-        if (layout.spaceLabel != label) {
-            layout.spaceLabel = label
+        val cleanLabel = if (label.equals("EN", ignoreCase = true)) "" else label
+        if (layout.spaceLabel != cleanLabel) {
+            layout.spaceLabel = cleanLabel
             val spaceKey = layout.keys.firstOrNull { it.type == KeyType.SPACE }
             if (spaceKey != null) {
-                spaceKey.label = label
+                spaceKey.label = cleanLabel
             }
             invalidate()
         }

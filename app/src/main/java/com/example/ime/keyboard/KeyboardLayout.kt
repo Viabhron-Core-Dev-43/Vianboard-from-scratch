@@ -24,7 +24,7 @@ class KeyboardLayout {
     val toolbarKeys = mutableListOf<KeyData>()
 
     var suggestions: List<String> = emptyList()
-    var spaceLabel: String = "EN"
+    var spaceLabel: String = ""
 
     var isToolbarExpanded: Boolean = false
     var isIncognitoActive: Boolean = false
@@ -121,7 +121,8 @@ class KeyboardLayout {
                 mode,
                 theme,
                 pinnedTools.size,
-                expandedTools.size
+                expandedTools.size,
+                hidePinned = hidePinnedWhenExpanded
             )
         ) {
             // Geometry is already up-to-date and retained
@@ -139,7 +140,8 @@ class KeyboardLayout {
             pinnedTools = pinnedTools,
             expandedTools = expandedTools,
             bottomInsetPx = bottomInsetPx,
-            rowDefinitions = rowDefinitions
+            rowDefinitions = rowDefinitions,
+            hidePinnedWhenExpanded = hidePinnedWhenExpanded
         )
         cachedGeometry = newGeo
 
@@ -232,7 +234,7 @@ class KeyboardLayout {
         // 5. Populate keys list with cached bounds and cached drawing metrics
         keys.clear()
         var keyIndex = 0
-        val bevelInsetBottomPx = 1.0f * density
+        val bevelInsetBottomPx = 1.5f * density
         val icSizePx = 22f * density
         for (row in rowDefinitions) {
             for (key in row) {
@@ -249,7 +251,7 @@ class KeyboardLayout {
                                        key.type == KeyType.NUMPAD_TOGGLE ||
                                        key.type == KeyType.DELETE ||
                                        key.type == KeyType.ENTER
-                    key.cornerRadius = if (key.isSpecialKey) (key.bounds.bottom - key.bounds.top) / 2f else theme.keyCornerRadiusDp * density
+                    key.cornerRadius = theme.keyCornerRadiusDp * density
                     key.topCapBounds.left = key.bounds.left
                     key.topCapBounds.top = key.bounds.top
                     key.topCapBounds.right = key.bounds.right
@@ -266,8 +268,8 @@ class KeyboardLayout {
                     key.labelX = keyCenterX
                     key.labelY = keyCenterY
 
-                    if (key.type == KeyType.COMMA || key.type == KeyType.PERIOD) {
-                        key.hintX = keyCenterX + (3.5f * density)
+                    if (key.type == KeyType.COMMA || key.type == KeyType.PERIOD || key.type == KeyType.ENTER) {
+                        key.hintX = key.bounds.right - (4.5f * density)
                         key.hintY = key.bounds.bottom - (4.5f * density)
                     } else {
                         key.hintX = key.bounds.right - (4f * density)
@@ -392,7 +394,7 @@ class KeyboardLayout {
         toolbarKeys.clear()
 
         // 1. Anchor button (Chevron / Incognito)
-        anchorKey.label = if (isIncognitoActive) "🕶️" else (if (isToolbarExpanded) "‹" else "›")
+        anchorKey.label = if (isIncognitoActive) "🕶️" else (if (isToolbarExpanded) "˄" else "›")
         toolbarKeys.add(anchorKey)
 
         if (isToolbarExpanded) {
@@ -605,7 +607,7 @@ class KeyboardLayout {
                 type = KeyType.PERIOD,
                 weight = 1.0f
             ),
-            KeyData(code = -4, label = "↵", hintLabel = null, type = KeyType.ENTER, weight = 1.6f)
+            KeyData(code = -4, label = "↵", hintLabel = "…", type = KeyType.ENTER, weight = 1.6f)
         )
 
         return listOf(row0, row1, row2, row3, row4)
@@ -643,7 +645,7 @@ class KeyboardLayout {
             KeyData(code = -7, label = "12\n34", type = KeyType.NUMPAD_TOGGLE, weight = 0.9f),
             KeyData(code = 32, label = "", hintLabel = null, type = KeyType.SPACE, weight = 4.0f),
             KeyData(code = '.'.code, label = ".", type = KeyType.PERIOD, weight = 0.9f),
-            KeyData(code = -4, label = "↵", hintLabel = null, type = KeyType.ENTER, weight = 1.5f)
+            KeyData(code = -4, label = "↵", hintLabel = "☺", type = KeyType.ENTER, weight = 1.5f)
         )
 
         return listOf(r0, r1, r2, row3, row4)
@@ -679,7 +681,7 @@ class KeyboardLayout {
             KeyData(code = '<'.code, label = "<", type = KeyType.CHARACTER, weight = 1.0f),
             KeyData(code = 32, label = "", hintLabel = null, type = KeyType.SPACE, weight = 4.6f),
             KeyData(code = '>'.code, label = ">", type = KeyType.CHARACTER, weight = 1.0f),
-            KeyData(code = -4, label = "↵", hintLabel = null, type = KeyType.ENTER, weight = 1.6f)
+            KeyData(code = -4, label = "↵", hintLabel = "☺", type = KeyType.ENTER, weight = 1.6f)
         )
 
         return listOf(r0, r1, r2, row3, row4)
@@ -722,7 +724,7 @@ class KeyboardLayout {
             KeyData(code = '0'.code, label = "0", type = KeyType.CHARACTER, weight = 1.4f),
             KeyData(code = '='.code, label = "=", hintLabel = "#", moreKeys = listOf("=", "#"), type = KeyType.CHARACTER, weight = 1.0f),
             KeyData(code = ':'.code, label = ":", hintLabel = ":", type = KeyType.CHARACTER, weight = 0.8f),
-            KeyData(code = -4, label = "↵", hintLabel = null, type = KeyType.ENTER, weight = 1.4f)
+            KeyData(code = -4, label = "↵", hintLabel = "☺", type = KeyType.ENTER, weight = 1.4f)
         )
 
         return listOf(row0, row1, row2, row3)

@@ -1,6 +1,5 @@
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.secrets)
 }
@@ -59,7 +58,7 @@ android {
   }
   buildFeatures {
     viewBinding = false
-    compose = true
+    compose = false
     buildConfig = true
   }
 
@@ -78,20 +77,11 @@ secrets {
 dependencies {
   coreLibraryDesugaring(libs.desugar.jdk.libs)
   implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.activity)
   implementation(libs.androidx.recyclerview)
   implementation(libs.androidx.autofill)
   implementation(libs.androidx.viewpager2)
   implementation(libs.kotlinx.serialization.json)
-  implementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.compose.material3)
-  implementation(libs.androidx.compose.ui)
-  implementation(libs.androidx.compose.ui.graphics)
-  implementation(libs.androidx.compose.ui.tooling.preview)
-  // implementation(libs.androidx.navigation.compose)
-  // implementation(libs.reorderable)
-  // implementation(libs.colorpicker.compose)
   testImplementation(libs.junit)
   testImplementation(libs.robolectric)
-  debugImplementation(libs.androidx.compose.ui.tooling)
-  debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

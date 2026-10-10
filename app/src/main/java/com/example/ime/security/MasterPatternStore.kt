@@ -48,6 +48,15 @@ object MasterPatternStore {
         LogKeeper.logEvent("PatternStore", "Presentation mode updated to ${mode.name}", LogLevel.INFO)
     }
 
+    fun isStealthPatternEnabled(context: Context): Boolean {
+        return getPresentationMode(context) == PatternPresentationMode.KEYBOARD_DISGUISE
+    }
+
+    fun setStealthPatternEnabled(context: Context, enabled: Boolean) {
+        val mode = if (enabled) PatternPresentationMode.KEYBOARD_DISGUISE else PatternPresentationMode.STANDARD_GRID
+        setPresentationMode(context, mode)
+    }
+
     fun areSeparatePatternsEnabled(context: Context): Boolean {
         return getPrefs(context).getBoolean(KEY_SEPARATE_PATTERNS, false)
     }

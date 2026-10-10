@@ -97,6 +97,7 @@ open class VianCardModalView @JvmOverloads constructor(
     }
 
     private fun setupSpeedIsland(view: View) {
+        view.findViewById<ImageButton>(R.id.btnDismissToAlpha)?.setOnClickListener { onDismissToAlpha?.invoke() }
         view.findViewById<ImageButton>(R.id.btnNavLeft).setOnClickListener { onNavigate?.invoke(1) }
         view.findViewById<ImageButton>(R.id.btnNavRight).setOnClickListener { onNavigate?.invoke(2) }
         view.findViewById<ImageButton>(R.id.btnNavUp).setOnClickListener { onNavigate?.invoke(3) }

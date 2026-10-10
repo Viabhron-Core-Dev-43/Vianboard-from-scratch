@@ -34,12 +34,12 @@ class AppearanceActivity : Activity() {
         tvCommaSummary = findViewById(R.id.tvCommaSummary)
         updateCommaSummary()
 
-        // 1. Main Layout Customisation (Live preview + sliders)
-        findViewById<LinearLayout>(R.id.cardMainLayoutCustomization).setOnClickListener {
-            startActivity(Intent(this, MainLayoutCustomizationActivity::class.java))
+        // 0. Layout & Live Preview
+        findViewById<LinearLayout>(R.id.cardLayoutPreview).setOnClickListener {
+            startActivity(Intent(this, AppearanceSettingsActivity::class.java))
         }
 
-        // 2. Desktop Shortcuts
+        // 1. Desktop Shortcuts
         findViewById<LinearLayout>(R.id.cardDesktopShortcuts).setOnClickListener {
             startActivity(Intent(this, DesktopShortcutsSettingsActivity::class.java))
         }
