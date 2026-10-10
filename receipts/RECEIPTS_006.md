@@ -471,4 +471,25 @@ This series is the permanent audit trail of actions taken in the repository. Eac
 - **Any deviation from what was requested, and why**: None. Built strictly to user's clarified requirements and approved plan.
 - **Known issue or follow-up needed**: Ready for on-device and emulator verification.
 
+---
 
+### [2026-10-10 14:10:30 UTC] - Receipt Entry 016: HeliBoard 1-to-1 Button Style, Keycap Geometry & Theme Realignment
+- **One-line summary**: Implemented 1-to-1 HeliBoard button look and style: key height 48dp, corner radius 3.5dp, bevel depth 1.0dp, border width 0.6dp @ 10% black, gaps 2.8dp/3.0dp, outer padding 2.5dp, and background color #ECEFF1.
+- **Exact files touched**:
+  * `/app/src/main/java/com/example/ime/keyboard/KeyboardTheme.kt`
+  * `/app/src/main/java/com/example/ime/keyboard/KeyboardGeometry.kt`
+  * `/app/src/main/java/com/example/ime/keyboard/KeyboardLayout.kt`
+  * `/receipts/RECEIPTS_006.md`
+- **What was actually done**:
+  1. Updated `KeyboardTheme.kt` default constants to exact HeliBoard Material Light spec: `keyHeightDp = 48f`, `keyCornerRadiusDp = 3.5f`, `borderWidthDp = 0.6f`, `borderColor = 0x1A000000`, `horizontalGapDp = 2.8f`, `verticalGapDp = 3.0f`, `backgroundColor = 0xFFECEFF1.toInt()`.
+  2. Updated `KeyboardTheme.loadFromPrefs()` fallback values to mirror these identical defaults so existing sessions pick up the refined proportions.
+  3. Updated `KeyboardGeometry.kt` companion constants: reduced `HELIBOARD_PADDING_DP` from 4.0dp to 2.5dp and `HELIBOARD_SPACING_DP` from 6.0dp to 4.0dp, eliminating excessive outer margin and matching HeliBoard's tight, sleek keycap grid.
+  4. Updated `KeyboardLayout.kt`: set `bevelInsetBottomPx` to `1.0f * density` to match HeliBoard's subtle 1.0dp bottom bevel drop shadow.
+  5. Kept clipboard paste pill separate as requested by the user.
+  6. Performed security scan and strictly purged build-generated keystores (`debug.keystore`, `debug.keystore.base64`) per Mandates 2 and 3.
+- **How it was verified**:
+  - Local build verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 23s, 30 actionable tasks, all unit & Robolectric tests passing).
+  - Keystore scan verified clean (zero keystores).
+- **Any deviation from what was requested, and why**: None. Built strictly to user's finalized specifications.
+- **Known issue or follow-up needed**: Ready for on-device and emulator visual confirmation.

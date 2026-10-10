@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 
 data class KeyboardTheme(
-    val backgroundColor: Int = 0xFFE8ECEF.toInt(),      // HeliBoard keyboard_background_lxx_light_border (#E8ECEF)
+    val backgroundColor: Int = 0xFFECEFF1.toInt(),      // HeliBoard keyboard_background_lxx_light_border (#ECEFF1)
     val keyBackgroundColor: Int = 0xFFFFFFFF.toInt(),   // Pure white letter/number/space keycaps
     val actionKeyColor: Int = 0xFFD6DBDF.toInt(),       // HeliBoard key_background_functional_lxx_light_border (#D6DBDF)
     val keyBottomBevelColor: Int = 0xFFB0BEC5.toInt(),  // HeliBoard key_bottom_bevel_lxx_base (#B0BEC5)
@@ -15,18 +15,18 @@ data class KeyboardTheme(
     val textColor: Int = 0xFF263238.toInt(),            // HeliBoard key_text_color_lxx_light (#263238)
     val enterTextColor: Int = 0xFFFFFFFF.toInt(),       // White icon/text on Enter
     val hintColor: Int = 0x9937474F.toInt(),            // HeliBoard key_hint_letter_color_lxx_light (60% opacity)
-    val borderColor: Int = 0x24000000,                  // Subtle key border matching HeliBoard
+    val borderColor: Int = 0x1A000000,                  // Subtle key border matching HeliBoard (0.6dp @ 10% black)
     val pressedKeyColor: Int = 0xFFCBD5E1.toInt(),      // Pressed state
     val popupBackgroundColor: Int = 0xFFCBD5E1.toInt(),  // Popup bubble
     val popupTextColor: Int = 0xFF37474F.toInt(),
     
-    // Geometry
-    val keyHeightDp: Float = 54f,
+    // Geometry (1-to-1 HeliBoard Material Light spec)
+    val keyHeightDp: Float = 48f,
     val toolbarHeightDp: Float = 40f,
-    val keyCornerRadiusDp: Float = 6f,
-    val borderWidthDp: Float = 0.8f,
-    val horizontalGapDp: Float = 3.5f,
-    val verticalGapDp: Float = 4f,
+    val keyCornerRadiusDp: Float = 3.5f,
+    val borderWidthDp: Float = 0.6f,
+    val horizontalGapDp: Float = 2.8f,
+    val verticalGapDp: Float = 3.0f,
     val actionKeyGrayProgress: Int = 40,   // HeliBoard #D6DBDF
     val enterKeyColorProgress: Int = 50,   // HeliBoard #546E7A
     val showPopups: Boolean = true,
@@ -76,11 +76,11 @@ data class KeyboardTheme(
 
         fun loadFromPrefs(context: Context): KeyboardTheme {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val keyHeight = prefs.getFloat(KEY_HEIGHT, 54f)
-            val cornerRadius = prefs.getFloat(KEY_CORNER_RADIUS, 6f)
-            val borderWidth = prefs.getFloat(KEY_BORDER_WIDTH, 0.8f)
-            val hGap = prefs.getFloat(KEY_HORIZONTAL_GAP, 3.5f)
-            val vGap = prefs.getFloat(KEY_VERTICAL_GAP, 4f)
+            val keyHeight = prefs.getFloat(KEY_HEIGHT, 48f)
+            val cornerRadius = prefs.getFloat(KEY_CORNER_RADIUS, 3.5f)
+            val borderWidth = prefs.getFloat(KEY_BORDER_WIDTH, 0.6f)
+            val hGap = prefs.getFloat(KEY_HORIZONTAL_GAP, 2.8f)
+            val vGap = prefs.getFloat(KEY_VERTICAL_GAP, 3.0f)
             val actionGray = prefs.getInt(KEY_ACTION_GRAY, 40)
             val enterColorProgress = prefs.getInt(KEY_ENTER_COLOR, 50)
             val showPopups = prefs.getBoolean(KEY_SHOW_POPUPS, true)
@@ -90,7 +90,7 @@ data class KeyboardTheme(
                 keyHeightDp = keyHeight,
                 keyCornerRadiusDp = cornerRadius,
                 borderWidthDp = borderWidth,
-                borderColor = if (borderWidth > 0f) 0x24000000 else 0x00000000,
+                borderColor = if (borderWidth > 0f) 0x1A000000 else 0x00000000,
                 horizontalGapDp = hGap,
                 verticalGapDp = vGap,
                 actionKeyGrayProgress = actionGray,

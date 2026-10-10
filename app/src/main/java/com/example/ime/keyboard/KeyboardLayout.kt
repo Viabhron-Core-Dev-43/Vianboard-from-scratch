@@ -234,7 +234,7 @@ class KeyboardLayout {
         // 5. Populate keys list with cached bounds and cached drawing metrics
         keys.clear()
         var keyIndex = 0
-        val bevelInsetBottomPx = 1.5f * density
+        val bevelInsetBottomPx = 1.0f * density
         val icSizePx = 22f * density
         for (row in rowDefinitions) {
             for (key in row) {
