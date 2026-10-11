@@ -22,7 +22,7 @@
             android:text="← Back"
             android:textSize="13sp"
             android:textColor="#0F172A"
-            android:background="#E2E8F0"
+            android:background="@drawable/btn_settings_pill"
             android:paddingStart="12dp"
             android:paddingEnd="12dp" />
 
@@ -45,7 +45,7 @@
             android:text="Reset"
             android:textSize="13sp"
             android:textColor="#64748B"
-            android:background="#F1F5F9"
+            android:background="@drawable/btn_settings_pill_subtle"
             android:paddingStart="12dp"
             android:paddingEnd="12dp" />
     </LinearLayout>
@@ -53,7 +53,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#E2E8F0" />
+        android:background="@drawable/btn_settings_pill" />
 
     <!-- Top Half: Scrollable Test Input & Sliders -->
     <ScrollView
@@ -158,7 +158,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginBottom="12dp" />
 
                 <!-- 2. Corner Radius -->
@@ -183,7 +183,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginBottom="12dp" />
 
                 <!-- 3. Horizontal Gap -->
@@ -208,7 +208,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginBottom="12dp" />
 
                 <!-- 4. Vertical Gap -->
@@ -273,7 +273,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginBottom="12dp" />
 
                 <!-- 6. Enter Key Color -->

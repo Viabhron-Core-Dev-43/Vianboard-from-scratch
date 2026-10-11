@@ -25,7 +25,7 @@
             android:text="← Back"
             android:textSize="12sp"
             android:textColor="#0F172A"
-            android:background="#E2E8F0" />
+            android:background="@drawable/btn_settings_pill" />
 
         <TextView
             android:layout_width="0dp"
@@ -78,7 +78,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:padding="12dp"
                     android:layout_marginTop="12dp">
 
@@ -245,7 +245,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginVertical="8dp" />
 
                 <!-- Verbose Mode -->
@@ -290,7 +290,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginVertical="8dp" />
 
                 <!-- Use beam search -->
@@ -335,7 +335,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginVertical="8dp" />
 
                 <!-- Allow undertrained languages -->
@@ -380,7 +380,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginVertical="8dp" />
 
                 <!-- Open Input Method Settings -->
@@ -430,7 +430,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginVertical="8dp" />
 
                 <!-- Re-enable legacy 30-second limit -->
@@ -475,7 +475,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginVertical="8dp" />
 
                 <!-- Haptic Feedback -->

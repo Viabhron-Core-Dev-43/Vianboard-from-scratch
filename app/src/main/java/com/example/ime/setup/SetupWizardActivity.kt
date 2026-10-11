@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.example.R
+import com.example.ime.settings.AppearanceSettingsActivity
 import com.example.ime.settings.SettingsActivity
 
 class SetupWizardActivity : Activity() {
@@ -54,6 +55,12 @@ class SetupWizardActivity : Activity() {
         findViewById<Button>(R.id.btnSkipToSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
             finish()
+        }
+        findViewById<Button>(R.id.btnPreviewKeyboardTop).setOnClickListener {
+            startActivity(Intent(this, AppearanceSettingsActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnPreviewKeyboard).setOnClickListener {
+            startActivity(Intent(this, AppearanceSettingsActivity::class.java))
         }
 
         btnStep1Enable.setOnClickListener {

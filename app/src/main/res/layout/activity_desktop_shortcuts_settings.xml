@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:text="← Back"
             android:textColor="#0F172A"
-            android:background="#E2E8F0"
+            android:background="@drawable/btn_settings_pill"
             android:minHeight="44dp"
             android:paddingStart="14dp"
             android:paddingEnd="14dp" />
@@ -77,7 +77,7 @@
             android:text="Sort: Default"
             android:textSize="12sp"
             android:textColor="#0F172A"
-            android:background="#E2E8F0"
+            android:background="@drawable/btn_settings_pill"
             android:paddingStart="10dp"
             android:paddingEnd="10dp" />
     </LinearLayout>

@@ -4,30 +4,30 @@ import android.content.Context
 import android.content.SharedPreferences
 
 data class KeyboardTheme(
-    val backgroundColor: Int = 0xFFECEFF1.toInt(),      // HeliBoard keyboard_background_lxx_light_border (#ECEFF1)
+    val backgroundColor: Int = 0xFFECEFF1.toInt(),      // HeliBoard THEME_BLUE_GRAY background (#ECEFF1)
     val keyBackgroundColor: Int = 0xFFFFFFFF.toInt(),   // Pure white letter/number/space keycaps
-    val actionKeyColor: Int = 0xFFD6DBDF.toInt(),       // HeliBoard key_background_functional_lxx_light_border (#D6DBDF)
-    val keyBottomBevelColor: Int = 0xFFB0BEC5.toInt(),  // HeliBoard key_bottom_bevel_lxx_base (#B0BEC5)
+    val actionKeyColor: Int = 0xFFCFD8DC.toInt(),       // HeliBoard THEME_BLUE_GRAY functionalKey (#CFD8DC)
+    val keyBottomBevelColor: Int = 0xFFB0BEC5.toInt(),  // HeliBoard bottom bevel (#B0BEC5)
     val actionKeyBevelColor: Int = 0xFF90A4AE.toInt(),  // HeliBoard functional key bevel (#90A4AE)
     val enterKeyColor: Int = 0xFF546E7A.toInt(),        // HeliBoard enter key (#546E7A)
     val enterKeyBevelColor: Int = 0xFF37474F.toInt(),   // HeliBoard enter key bottom bevel (#37474F)
-    val accentColor: Int = 0xFF1A73E8.toInt(),          // HeliBoard highlight_color_lxx_light (#1A73E8)
-    val textColor: Int = 0xFF263238.toInt(),            // HeliBoard key_text_color_lxx_light (#263238)
+    val accentColor: Int = 0xFF78909C.toInt(),          // HeliBoard THEME_BLUE_GRAY accent (#78909C)
+    val textColor: Int = 0xFF37474F.toInt(),            // HeliBoard key_text_color (#37474F)
     val enterTextColor: Int = 0xFFFFFFFF.toInt(),       // White icon/text on Enter
-    val hintColor: Int = 0x9937474F.toInt(),            // HeliBoard key_hint_letter_color_lxx_light (60% opacity)
-    val borderColor: Int = 0x1A000000,                  // Subtle key border matching HeliBoard (0.6dp @ 10% black)
-    val pressedKeyColor: Int = 0xFFCBD5E1.toInt(),      // Pressed state
-    val popupBackgroundColor: Int = 0xFFCBD5E1.toInt(),  // Popup bubble
+    val hintColor: Int = 0x9937474F.toInt(),            // HeliBoard key hint (60% opacity)
+    val borderColor: Int = 0x00000000,                  // No artificial stroke (HeliBoard layer-list aesthetic)
+    val pressedKeyColor: Int = 0xFFB0BEC5.toInt(),      // Pressed state
+    val popupBackgroundColor: Int = 0xFFCFD8DC.toInt(),  // Popup bubble
     val popupTextColor: Int = 0xFF37474F.toInt(),
     
-    // Geometry (1-to-1 HeliBoard Material Light spec)
-    val keyHeightDp: Float = 48f,
+    // Geometry (1-to-1 HeliBoard Material Light spec with Number Row)
+    val keyHeightDp: Float = 50f,
     val toolbarHeightDp: Float = 40f,
-    val keyCornerRadiusDp: Float = 3.5f,
-    val borderWidthDp: Float = 0.6f,
-    val horizontalGapDp: Float = 2.8f,
-    val verticalGapDp: Float = 3.0f,
-    val actionKeyGrayProgress: Int = 40,   // HeliBoard #D6DBDF
+    val keyCornerRadiusDp: Float = 10f,
+    val borderWidthDp: Float = 0f,
+    val horizontalGapDp: Float = 3.0f,
+    val verticalGapDp: Float = 4.5f,
+    val actionKeyGrayProgress: Int = 40,   // HeliBoard #CCCED5
     val enterKeyColorProgress: Int = 50,   // HeliBoard #546E7A
     val showPopups: Boolean = true,
     val showHints: Boolean = true
@@ -45,8 +45,8 @@ data class KeyboardTheme(
         const val KEY_SHOW_HINTS = "key_show_hints"
 
         fun calculateActionKeyColor(grayProgress: Int): Int {
-            // 0 = #F1F3F4, 40 = #D6DBDF (HeliBoard functional key), 100 = #78909C (darker grey-slate)
-            if (grayProgress == 40) return 0xFFD6DBDF.toInt()
+            // 0 = #F1F3F4, 40 = #CCCED5 (HeliBoard functional key), 100 = #78909C (darker grey-slate)
+            if (grayProgress == 40) return 0xFFCFD8DC.toInt()
             val factor = grayProgress.coerceIn(0, 100) / 100f
             val startR = 241; val startG = 243; val startB = 244
             val endR = 120; val endG = 144; val endB = 156
@@ -76,11 +76,11 @@ data class KeyboardTheme(
 
         fun loadFromPrefs(context: Context): KeyboardTheme {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val keyHeight = prefs.getFloat(KEY_HEIGHT, 48f)
-            val cornerRadius = prefs.getFloat(KEY_CORNER_RADIUS, 3.5f)
-            val borderWidth = prefs.getFloat(KEY_BORDER_WIDTH, 0.6f)
-            val hGap = prefs.getFloat(KEY_HORIZONTAL_GAP, 2.8f)
-            val vGap = prefs.getFloat(KEY_VERTICAL_GAP, 3.0f)
+            val keyHeight = prefs.getFloat(KEY_HEIGHT, 50f)
+            val cornerRadius = prefs.getFloat(KEY_CORNER_RADIUS, 10f)
+            val borderWidth = prefs.getFloat(KEY_BORDER_WIDTH, 0f)
+            val hGap = prefs.getFloat(KEY_HORIZONTAL_GAP, 3.0f)
+            val vGap = prefs.getFloat(KEY_VERTICAL_GAP, 4.5f)
             val actionGray = prefs.getInt(KEY_ACTION_GRAY, 40)
             val enterColorProgress = prefs.getInt(KEY_ENTER_COLOR, 50)
             val showPopups = prefs.getBoolean(KEY_SHOW_POPUPS, true)

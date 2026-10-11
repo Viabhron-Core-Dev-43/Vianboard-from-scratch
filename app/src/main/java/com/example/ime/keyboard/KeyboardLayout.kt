@@ -251,7 +251,15 @@ class KeyboardLayout {
                                        key.type == KeyType.NUMPAD_TOGGLE ||
                                        key.type == KeyType.DELETE ||
                                        key.type == KeyType.ENTER
-                    key.cornerRadius = theme.keyCornerRadiusDp * density
+                    val normalRadiusPx = theme.keyCornerRadiusDp * density
+                    val specialRadiusPx = if (key.isSpecialKey) {
+                        val keyW = key.bounds.right - key.bounds.left
+                        val keyH = key.bounds.bottom - key.bounds.top
+                        minOf(keyW, keyH) / 2f
+                    } else {
+                        normalRadiusPx
+                    }
+                    key.cornerRadius = specialRadiusPx
                     key.topCapBounds.left = key.bounds.left
                     key.topCapBounds.top = key.bounds.top
                     key.topCapBounds.right = key.bounds.right

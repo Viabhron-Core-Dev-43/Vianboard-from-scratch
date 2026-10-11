@@ -23,7 +23,7 @@
             android:text="← Back"
             android:textSize="12sp"
             android:textColor="#0F172A"
-            android:background="#E2E8F0" />
+            android:background="@drawable/btn_settings_pill" />
 
         <TextView
             android:layout_width="0dp"

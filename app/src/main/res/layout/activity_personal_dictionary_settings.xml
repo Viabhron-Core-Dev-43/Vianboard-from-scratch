@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:text="← Back"
             android:textColor="#0F172A"
-            android:background="#E2E8F0"
+            android:background="@drawable/btn_settings_pill"
             android:minHeight="44dp"
             android:paddingStart="14dp"
             android:paddingEnd="14dp" />
@@ -89,7 +89,7 @@
             android:textSize="14sp"
             android:textColor="#0F172A"
             android:textColorHint="#94A3B8"
-            android:background="#F1F5F9"
+            android:background="@drawable/btn_settings_pill_subtle"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:singleLine="true" />

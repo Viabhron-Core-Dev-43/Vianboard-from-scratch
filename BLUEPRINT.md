@@ -314,4 +314,31 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   - **Tactile Keycap Bevel & Border**: Set `bevelInsetBottomPx` to 1.0dp in `KeyboardLayout.kt` and keycap outline border to 0.6dp stroke width with 10% black opacity (`0x1A000000`) on background `#ECEFF1`, matching HeliBoard's Material Light (Bordered) aesthetic.
   - **Isolation Maintained**: Preserved clipboard paste pill logic completely untouched.
   - **Verification & Security**: Verified compilation via `compile_applet` (BUILD SUCCESSFUL) and full test suite via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL, 30 actionable tasks, all 39 tests passing). Strictly purged build-generated keystores per Mandates 2 and 3.
+- **2026-10-11**: Completed Phase 39 (HeliBoard 1-to-1 Differentiated Key Rounding, 3.0dp Gap, Punctuation Key Fix & Deeper Grey Background):
+  - **Differentiated Special Key Curvature**: Implemented distinct higher corner rounding for functional/special keys (Shift, Backspace/Delete, `?123`, `=\<`, Symbols toggle, Enter) with 16dp–24dp pill/capsule radius in `KeyboardLayout.kt`, matching HeliBoard's rounded functional drawables, while keeping alphanumeric keys at a sleek 8.0dp corner radius.
+  - **Horizontal Gap**: Locked horizontal key separation to exactly 3.0dp (`horizontalGapDp = 3.0f`) across `KeyboardTheme.kt` and `loadFromPrefs()`, tightening keys to HeliBoard's exact horizontal pitch.
+  - **Punctuation Key Hierarchy & Paint Correction**: Corrected `isActionKey` check in `VianKeyboardView.kt` to target `key.isSpecialKey && key.type != KeyType.ENTER`, ensuring Comma and Period remain pure white letter-tier keys (`#FFFFFF`) with `textPaint` rather than being painted functional grey.
+  - **Deeper Grey Chassis Background**: Updated keyboard background from off-white `#E8EAED` to deeper slate-grey `#D6DBDF` in `KeyboardTheme.kt`, establishing authentic contrast against floating white keys and slate modifiers.
+  - **Verification & Security**: Verified zero compilation errors via `compile_applet` (BUILD SUCCESSFUL) and full test suite via `gradle :app:testDebugUnitTest` (30 actionable tasks, 39/39 passing). Purged test-generated keystores per Mandates 2 and 3.
 
+
+---
+
+### [2026-10-11 12:31:00 UTC] - Update: Full Capsule Curvature & HeliBoard THEME_BLUE_GRAY Palette
+- **Changes**:
+  1. `KeyboardLayout.kt`: Special keys (Shift, Backspace/Delete, ?123, symbols, Enter) use true capsule pill curvature `minOf(key.bounds.width(), key.bounds.height()) / 2f`.
+  2. `KeyboardTheme.kt`: Default corner radius updated to 10dp for alphanumeric keys. Palette updated to match HeliBoard `THEME_BLUE_GRAY`: `#ECEFF1` keyboard chassis, `#FFFFFF` letter keycaps, `#CFD8DC` functional keycaps (Shift, Backspace, ?123), `#B0BEC5` bottom bevel depth, `#78909C` accent, and `#37474F` text/glyphs.
+
+---
+
+### [2026-10-11 12:53:00 UTC] - Update: Settings Button Roundedness (14dp Radius)
+- **Changes**:
+  1. Created 14dp rounded corner drawables: `btn_settings_pill.xml`, `btn_settings_pill_subtle.xml`, and `btn_settings_pill_primary.xml`.
+  2. Updated header navigation buttons (`btnBack`), reset buttons (`btnReset`), and action buttons across all Settings activities to use 14dp curvature.
+
+---
+
+### [2026-10-11 13:27:00 UTC] - Update: Welcome Page Keyboard Preview Navigation
+- **Changes**:
+  1. `activity_setup_wizard.xml`: Added top bar "⌨ Preview" and Step 3 primary "⌨ Preview Keyboard" action buttons with 14dp rounded corner curvature.
+  2. `SetupWizardActivity.kt`: Wired click listeners to launch `AppearanceSettingsActivity` directly.

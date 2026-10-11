@@ -21,7 +21,7 @@
             android:layout_height="36dp"
             android:text="← Back"
             android:textColor="#0F172A"
-            android:background="#E2E8F0"
+            android:background="@drawable/btn_settings_pill"
             android:textSize="13sp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp" />
@@ -44,7 +44,7 @@
             android:layout_height="36dp"
             android:text="Reset"
             android:textColor="#64748B"
-            android:background="#F1F5F9"
+            android:background="@drawable/btn_settings_pill_subtle"
             android:textSize="13sp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp" />
@@ -53,7 +53,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#E2E8F0" />
+        android:background="@drawable/btn_settings_pill" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -193,7 +193,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginStart="16dp" />
 
                 <!-- 2. Cursor Sync Guard -->
@@ -239,7 +239,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginStart="16dp" />
 
                 <!-- 3. Web Editor Performance Mode -->
@@ -285,7 +285,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginStart="16dp" />
 
                 <!-- 4. Lite Mode -->

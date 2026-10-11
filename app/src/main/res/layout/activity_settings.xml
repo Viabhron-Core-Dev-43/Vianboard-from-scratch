@@ -21,7 +21,7 @@
             android:layout_height="36dp"
             android:text="← Back"
             android:textColor="#0F172A"
-            android:background="#E2E8F0"
+            android:background="@drawable/btn_settings_pill"
             android:textSize="13sp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp" />
@@ -41,7 +41,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#E2E8F0" />
+        android:background="@drawable/btn_settings_pill" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -235,7 +235,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginStart="54dp" />
 
                 <!-- Voice Input -->
@@ -424,7 +424,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#F1F5F9"
+                    android:background="@drawable/btn_settings_pill_subtle"
                     android:layout_marginStart="54dp" />
 
                 <!-- Advanced -->

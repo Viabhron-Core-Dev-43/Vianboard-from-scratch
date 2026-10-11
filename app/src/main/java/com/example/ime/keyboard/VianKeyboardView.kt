@@ -611,7 +611,7 @@ class VianKeyboardView @JvmOverloads constructor(
 
         // 3. Draw Main Keys
         for (key in layout.keys) {
-            val isActionKey = key.type != KeyType.CHARACTER && key.type != KeyType.SPACE
+            val isActionKey = key.isSpecialKey && key.type != KeyType.ENTER
             val isEnter = key.type == KeyType.ENTER
 
             val currentBgPaint = when {
@@ -665,7 +665,7 @@ class VianKeyboardView @JvmOverloads constructor(
                 }
                 else -> {
                     val paintToUse = when {
-                        key.type == KeyType.CHARACTER || key.type == KeyType.SPACE -> textPaint
+                        key.type == KeyType.CHARACTER || key.type == KeyType.SPACE || key.type == KeyType.COMMA || key.type == KeyType.PERIOD -> textPaint
                         else -> actionTextPaint
                     }
 

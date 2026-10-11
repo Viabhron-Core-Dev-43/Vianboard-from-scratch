@@ -106,7 +106,7 @@ class KeyboardGeometry(
         const val HELIBOARD_CHEVRON_SIZE_DP = 20f
         const val HELIBOARD_ICON_SIZE_DP = 20f
         const val HELIBOARD_SPACING_DP = 4f
-        const val HELIBOARD_PADDING_DP = 2.5f
+        const val HELIBOARD_PADDING_DP = 3.0f
 
         private fun rectF(left: Float, top: Float, right: Float, bottom: Float): RectF {
             val r = RectF()
