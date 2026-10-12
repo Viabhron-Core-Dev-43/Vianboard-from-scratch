@@ -269,7 +269,7 @@ class KeyboardGeometry(
             // --- 2. Keyboard Grid Geometry ---
             val horizontalGapPx = theme.horizontalGapDp * density
             val verticalGapPx = theme.verticalGapDp * density
-            val keyboardStartY = toolbarBounds.bottom + verticalGapPx
+            val keyboardStartY = toolbarBounds.bottom + paddingVPx
             val availableKeyboardHeight = (height - keyboardStartY - paddingVPx - bottomInsetPx).coerceAtLeast(0f)
             val keyboardBounds = rectF(paddingHPx, keyboardStartY, paddingHPx + availableWidth, keyboardStartY + availableKeyboardHeight)
 

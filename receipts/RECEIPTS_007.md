@@ -137,3 +137,86 @@
   - `compile_applet` and unit test suite execution queued.
 - **Any deviation from what was requested, and why**: None. Followed the finalized plan with zero deviation.
 - **Known issue or follow-up needed**: Ready for compilation verification.
+
+---
+
+### [2026-10-12 19:55:00 UTC] - Receipt Entry 022: HeliBoard Visual Alignment & Constant Board Height on Vertical Gap
+- **One-line summary**: Synchronized app name to Vianboard, decoupled board measured height from key vertical gap in onMeasure/KeyboardGeometry, and aligned keycaps to authentic HeliBoard squircle/rounded rectangle geometry.
+- **Exact files touched**:
+  * `metadata.json`
+  * `app/src/main/res/values/strings.xml`
+  * `app/src/main/java/com/example/ime/keyboard/KeyboardGeometry.kt`
+  * `app/src/main/java/com/example/ime/keyboard/KeyboardLayout.kt`
+  * `app/src/main/java/com/example/ime/keyboard/VianKeyboardView.kt`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Updated `metadata.json` and added `app_name` in `strings.xml` to set application name to "Vianboard".
+  2. In `KeyboardGeometry.kt`, anchored `keyboardStartY` to `toolbarBounds.bottom + paddingVPx`, enabling key heights to proportionally scale and absorb vertical gaps without shifting overall keyboard dimensions.
+  3. In `VianKeyboardView.kt`, recalculated `totalCalculatedHeight` in `onMeasure` strictly from toolbar, rows, padding and navigation insets, guaranteeing total board height remains constant when vertical gap is adjusted in Appearance Settings.
+  4. In `KeyboardLayout.kt`, removed capsule pill rounding on special keys (Shift, Delete, ?123, Enter), aligning all keycaps to uniform HeliBoard squircle geometry (`theme.keyCornerRadiusDp`), centered labels on visible `topCapBounds`, and set bottom bevel depth to 1.5dp.
+  5. Kept `VianPatternUnlockView.kt` preserved per explicit instructions.
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Unit test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 9s, 30 actionable tasks, all unit tests passing).
+- **Any deviation from what was requested, and why**: None. Followed the finalized plan with zero deviation.
+- **Known issue or follow-up needed**: None. Workspace is stable and verified.
+
+---
+
+### [2026-10-12 20:30:00 UTC] - Receipt Entry 023: Comma & Period Functional Keycap Alignment & Soft Lighter Special Button Palette
+- **One-line summary**: Aligned Comma and Period keycaps to special button palette and lightened default functional key colors to #DEE4E8 with matching #B8C3CC bevel.
+- **Exact files touched**:
+  * `app/src/main/java/com/example/ime/keyboard/KeyboardLayout.kt`
+  * `app/src/main/java/com/example/ime/keyboard/KeyboardTheme.kt`
+  * `app/src/main/java/com/example/ime/settings/AppearanceSettingsActivity.kt`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Updated `KeyboardLayout.kt` to mark `KeyType.COMMA` and `KeyType.PERIOD` as `isSpecialKey = true`, so their keycaps and bottom bevels automatically draw using `actionKeyPaint` and `actionKeyBevelPaint`.
+  2. In `KeyboardTheme.kt`, updated `actionKeyColor` default to `#DEE4E8`, `actionKeyBevelColor` default to `#B8C3CC`, and default `actionKeyGrayProgress` to 30.
+  3. Added `calculateActionKeyBevelColor(grayProgress)` in `KeyboardTheme.kt` and wired it into `AppearanceSettingsActivity.kt` to dynamically update bevel depth when the special key grey slider changes.
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Unit test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 28s, 30 actionable tasks, all unit tests passing).
+- **Any deviation from what was requested, and why**: None. Followed the finalized plan with zero deviation.
+- **Known issue or follow-up needed**: None. Workspace is stable and verified.
+
+---
+
+### [2026-10-12 20:47:00 UTC] - Receipt Entry 024: 24dp Corner Radius on Special Functional Keys
+- **One-line summary**: Applied 24dp corner curvature exclusively to special keys (Shift, Comma, Period, ?123, Enter, Delete) while keeping alphanumeric keys and Space bar at 10dp squircle curvature.
+- **Exact files touched**:
+  * `app/src/main/java/com/example/ime/keyboard/KeyboardLayout.kt`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Updated `KeyboardLayout.kt` to calculate `specialRadiusPx = (24f * density).coerceAtMost(minOf(key.bounds.width(), key.bounds.height()) / 2f)` and assign it to `key.cornerRadius` for all `key.isSpecialKey` instances (Shift, Comma, Period, ?123 / symbols toggles, Enter, Delete), giving them organic pill curvature.
+  2. Preserved standard 10dp squircle curvature (`normalRadiusPx`) for letter keys, number row, and Space bar.
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Unit test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 10s, 30 actionable tasks, all 39 tests passing).
+- **Any deviation from what was requested, and why**: None. Followed the finalized plan with zero deviation.
+- **Known issue or follow-up needed**: None. Workspace is stable and verified.
+
+---
+
+### [2026-10-12 21:05:00 UTC] - Receipt Entry 025: Clean Repository Source ZIP Export
+- **One-line summary**: Relocated clean 1.1 MB export archive to `export/vianboard_source.zip` and unignored it from `.gitignore` for full visibility in AI Studio Code tab.
+- **Exact files touched**:
+  * `export/vianboard_source.zip`
+  * `/.gitignore`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Removed `vianboard_source.zip` from `/.gitignore` so the file and directory are not filtered out by the Monaco/VS Code file explorer.
+  2. Moved the clean 1.1 MB source archive to `export/vianboard_source.zip`.
+  3. Confirmed archive contents via `unzip -l`, ensuring 0 exposed credentials, 0 binary APKs, and 0 temporary cache directories.
+- **How it was verified**:
+  - `ls -la export/` verified file presence and 1.1 MB size.
+- **Any deviation from what was requested, and why**: None. Followed the finalized plan with zero deviation.
+- **Known issue or follow-up needed**: None. Workspace is stable and verified.
+
+
+
+

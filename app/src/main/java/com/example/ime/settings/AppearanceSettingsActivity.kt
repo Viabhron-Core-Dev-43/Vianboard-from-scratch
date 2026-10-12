@@ -207,6 +207,7 @@ open class AppearanceSettingsActivity : Activity() {
             actionKeyGrayProgress = actionGrayVal,
             enterKeyColorProgress = enterColorVal,
             actionKeyColor = KeyboardTheme.calculateActionKeyColor(actionGrayVal),
+            actionKeyBevelColor = KeyboardTheme.calculateActionKeyBevelColor(actionGrayVal),
             enterKeyColor = KeyboardTheme.calculateEnterKeyColor(enterColorVal)
         )
 

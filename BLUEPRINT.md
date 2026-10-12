@@ -342,3 +342,36 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
 - **Changes**:
   1. `activity_setup_wizard.xml`: Added top bar "⌨ Preview" and Step 3 primary "⌨ Preview Keyboard" action buttons with 14dp rounded corner curvature.
   2. `SetupWizardActivity.kt`: Wired click listeners to launch `AppearanceSettingsActivity` directly.
+
+---
+
+### [2026-10-12 19:55:00 UTC] - Update: HeliBoard Visual Alignment & Constant Board Height on Vertical Gap
+- **Changes**:
+  1. `KeyboardGeometry.kt`: Decoupled `keyboardStartY` from `verticalGapPx` by anchoring it to `toolbarBounds.bottom + paddingVPx`, enabling key heights to proportionally absorb vertical gaps.
+  2. `VianKeyboardView.kt`: Re-architected `onMeasure` calculation so `totalCalculatedHeight` is defined by `toolbarHeight + rowsTotalHeight + (paddingVPx * 2f) + bottomNavInsetPx`, guaranteeing the board height remains invariant when vertical key gap is altered.
+  3. `KeyboardLayout.kt`: Standardized functional/special keys (Shift, Delete, ?123, Enter) to uniform HeliBoard squircle/rounded rectangle geometry (`theme.keyCornerRadiusDp`) instead of full capsule pills; centered labels on visible keycap surface (`topCapBounds`); refined bottom bevel shadow depth to 1.5dp.
+  4. `metadata.json` & `strings.xml`: Synchronized application identity name to `Vianboard`.
+  5. Pattern Unlock: Maintained `VianPatternUnlockView.kt` intact per instructions.
+
+---
+
+### [2026-10-12 20:30:00 UTC] - Update: Comma & Period Functional Keycap Alignment & Soft Lighter Special Button Palette
+- **Changes**:
+  1. `KeyboardLayout.kt`: Included `KeyType.COMMA` and `KeyType.PERIOD` into `isSpecialKey`, routing their keycaps to `actionKeyPaint` and `actionKeyBevelPaint`, while preserving `textPaint` for dark, readable `,` and `.` glyphs.
+  2. `KeyboardTheme.kt`: Lightened default functional keycap palette to `#DEE4E8` (`actionKeyColor`) and `#B8C3CC` (`actionKeyBevelColor`), added `calculateActionKeyBevelColor`, and set default `actionKeyGrayProgress` to 30.
+  3. `AppearanceSettingsActivity.kt`: Synchronized dynamic bevel color recalculation (`calculateActionKeyBevelColor`) when adjusting the special key grey slider.
+
+---
+
+### [2026-10-12 20:47:00 UTC] - Update: Differentiated 24dp Corner Radius for Special Keys
+- **Changes**:
+  1. `KeyboardLayout.kt`: Applied a distinctive 24dp corner radius (`(24f * density).coerceAtMost(minOf(w, h)/2f)`) exclusively to special functional keys (Shift, Comma, Period, ?123 / symbols toggles, Enter, Delete / Backspace), establishing an organic, rounded pill silhouette for functional buttons while retaining standard 10dp squircle curvature for alphanumeric keys and Space bar.
+
+---
+
+### [2026-10-12 21:05:00 UTC] - Update: Clean Repository ZIP Export (`export/vianboard_source.zip`)
+- **Changes**:
+  1. Generated sanitized 1.1 MB ZIP archive located at `export/vianboard_source.zip`.
+  2. Unignored from `/.gitignore` so the `export/` folder and ZIP file are immediately visible in the AI Studio Code tab explorer.
+  3. Filtered out all intermediate Gradle build caches (`build/*`, `.gradle/*`), platform internals (`.aistudio/*`), binaries (`.build-outputs/*`), and sensitive keystores (`debug.keystore*`) per Mandates 2 and 3.
+  4. Archive is verified pristine, ready for download via AI Studio file explorer and direct push to GitHub.

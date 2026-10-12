@@ -234,7 +234,7 @@ class KeyboardLayout {
         // 5. Populate keys list with cached bounds and cached drawing metrics
         keys.clear()
         var keyIndex = 0
-        val bevelInsetBottomPx = 1.0f * density
+        val bevelInsetBottomPx = 1.5f * density
         val icSizePx = 22f * density
         for (row in rowDefinitions) {
             for (key in row) {
@@ -250,35 +250,33 @@ class KeyboardLayout {
                                        key.type == KeyType.SYMBOLS_MORE_TOGGLE ||
                                        key.type == KeyType.NUMPAD_TOGGLE ||
                                        key.type == KeyType.DELETE ||
-                                       key.type == KeyType.ENTER
+                                       key.type == KeyType.ENTER ||
+                                       key.type == KeyType.COMMA ||
+                                       key.type == KeyType.PERIOD
                     val normalRadiusPx = theme.keyCornerRadiusDp * density
-                    val specialRadiusPx = if (key.isSpecialKey) {
-                        val keyW = key.bounds.right - key.bounds.left
-                        val keyH = key.bounds.bottom - key.bounds.top
-                        minOf(keyW, keyH) / 2f
-                    } else {
-                        normalRadiusPx
-                    }
-                    key.cornerRadius = specialRadiusPx
+                    val keyW = key.bounds.right - key.bounds.left
+                    val keyH = key.bounds.bottom - key.bounds.top
+                    val specialRadiusPx = (24f * density).coerceAtMost(minOf(keyW, keyH) / 2f)
+                    key.cornerRadius = if (key.isSpecialKey) specialRadiusPx else normalRadiusPx
                     key.topCapBounds.left = key.bounds.left
                     key.topCapBounds.top = key.bounds.top
                     key.topCapBounds.right = key.bounds.right
                     key.topCapBounds.bottom = key.bounds.bottom - bevelInsetBottomPx
 
                     val keyCenterX = (key.bounds.left + key.bounds.right) / 2f
-                    val keyCenterY = (key.bounds.top + key.bounds.bottom) / 2f
+                    val visibleCapCenterY = (key.topCapBounds.top + key.topCapBounds.bottom) / 2f
                     val icLeft = (keyCenterX - (icSizePx / 2f)).toInt()
-                    val icTop = (keyCenterY - (icSizePx / 2f)).toInt()
+                    val icTop = (visibleCapCenterY - (icSizePx / 2f)).toInt()
                     key.iconBounds.left = icLeft
                     key.iconBounds.top = icTop
                     key.iconBounds.right = (icLeft + icSizePx).toInt()
                     key.iconBounds.bottom = (icTop + icSizePx).toInt()
                     key.labelX = keyCenterX
-                    key.labelY = keyCenterY
+                    key.labelY = visibleCapCenterY
 
                     if (key.type == KeyType.COMMA || key.type == KeyType.PERIOD || key.type == KeyType.ENTER) {
                         key.hintX = key.bounds.right - (4.5f * density)
-                        key.hintY = key.bounds.bottom - (4.5f * density)
+                        key.hintY = key.topCapBounds.bottom - (3.5f * density)
                     } else {
                         key.hintX = key.bounds.right - (4f * density)
                         key.hintY = key.bounds.top + (11f * density)

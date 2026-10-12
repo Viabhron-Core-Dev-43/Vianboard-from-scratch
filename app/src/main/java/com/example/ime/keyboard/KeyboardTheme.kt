@@ -6,9 +6,9 @@ import android.content.SharedPreferences
 data class KeyboardTheme(
     val backgroundColor: Int = 0xFFECEFF1.toInt(),      // HeliBoard THEME_BLUE_GRAY background (#ECEFF1)
     val keyBackgroundColor: Int = 0xFFFFFFFF.toInt(),   // Pure white letter/number/space keycaps
-    val actionKeyColor: Int = 0xFFCFD8DC.toInt(),       // HeliBoard THEME_BLUE_GRAY functionalKey (#CFD8DC)
+    val actionKeyColor: Int = 0xFFDEE4E8.toInt(),       // HeliBoard lighter functionalKey (#DEE4E8)
     val keyBottomBevelColor: Int = 0xFFB0BEC5.toInt(),  // HeliBoard bottom bevel (#B0BEC5)
-    val actionKeyBevelColor: Int = 0xFF90A4AE.toInt(),  // HeliBoard functional key bevel (#90A4AE)
+    val actionKeyBevelColor: Int = 0xFFB8C3CC.toInt(),  // HeliBoard lighter functional key bevel (#B8C3CC)
     val enterKeyColor: Int = 0xFF546E7A.toInt(),        // HeliBoard enter key (#546E7A)
     val enterKeyBevelColor: Int = 0xFF37474F.toInt(),   // HeliBoard enter key bottom bevel (#37474F)
     val accentColor: Int = 0xFF78909C.toInt(),          // HeliBoard THEME_BLUE_GRAY accent (#78909C)
@@ -27,7 +27,7 @@ data class KeyboardTheme(
     val borderWidthDp: Float = 0f,
     val horizontalGapDp: Float = 3.0f,
     val verticalGapDp: Float = 4.5f,
-    val actionKeyGrayProgress: Int = 40,   // HeliBoard #CCCED5
+    val actionKeyGrayProgress: Int = 30,   // HeliBoard subtle light #DEE4E8
     val enterKeyColorProgress: Int = 50,   // HeliBoard #546E7A
     val showPopups: Boolean = true,
     val showHints: Boolean = true
@@ -45,11 +45,23 @@ data class KeyboardTheme(
         const val KEY_SHOW_HINTS = "key_show_hints"
 
         fun calculateActionKeyColor(grayProgress: Int): Int {
-            // 0 = #F1F3F4, 40 = #CCCED5 (HeliBoard functional key), 100 = #78909C (darker grey-slate)
+            if (grayProgress == 30) return 0xFFDEE4E8.toInt()
             if (grayProgress == 40) return 0xFFCFD8DC.toInt()
             val factor = grayProgress.coerceIn(0, 100) / 100f
             val startR = 241; val startG = 243; val startB = 244
             val endR = 120; val endG = 144; val endB = 156
+            val r = (startR + (endR - startR) * factor).toInt()
+            val g = (startG + (endG - startG) * factor).toInt()
+            val b = (startB + (endB - startB) * factor).toInt()
+            return (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+        }
+
+        fun calculateActionKeyBevelColor(grayProgress: Int): Int {
+            if (grayProgress == 30) return 0xFFB8C3CC.toInt()
+            if (grayProgress == 40) return 0xFF90A4AE.toInt()
+            val factor = grayProgress.coerceIn(0, 100) / 100f
+            val startR = 210; val startG = 218; val startB = 224
+            val endR = 144; val endG = 164; val endB = 174
             val r = (startR + (endR - startR) * factor).toInt()
             val g = (startG + (endG - startG) * factor).toInt()
             val b = (startB + (endB - startB) * factor).toInt()
@@ -81,7 +93,7 @@ data class KeyboardTheme(
             val borderWidth = prefs.getFloat(KEY_BORDER_WIDTH, 0f)
             val hGap = prefs.getFloat(KEY_HORIZONTAL_GAP, 3.0f)
             val vGap = prefs.getFloat(KEY_VERTICAL_GAP, 4.5f)
-            val actionGray = prefs.getInt(KEY_ACTION_GRAY, 40)
+            val actionGray = prefs.getInt(KEY_ACTION_GRAY, 30)
             val enterColorProgress = prefs.getInt(KEY_ENTER_COLOR, 50)
             val showPopups = prefs.getBoolean(KEY_SHOW_POPUPS, true)
             val showHints = prefs.getBoolean(KEY_SHOW_HINTS, true)
@@ -96,6 +108,7 @@ data class KeyboardTheme(
                 actionKeyGrayProgress = actionGray,
                 enterKeyColorProgress = enterColorProgress,
                 actionKeyColor = calculateActionKeyColor(actionGray),
+                actionKeyBevelColor = calculateActionKeyBevelColor(actionGray),
                 enterKeyColor = calculateEnterKeyColor(enterColorProgress),
                 showPopups = showPopups,
                 showHints = showHints

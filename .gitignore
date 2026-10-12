@@ -33,5 +33,4 @@ build/
 .gradle/
 .cxx/
 obj/
-vianboard_source.zip
 .aistudio/
