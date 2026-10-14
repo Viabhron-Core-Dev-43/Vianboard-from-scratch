@@ -288,6 +288,15 @@ object LogKeeper {
         )
     }
 
+    fun logError(tag: String, message: String, throwable: Throwable? = null) {
+        val details = if (throwable != null) "$message (${throwable.javaClass.simpleName}: ${throwable.message})" else message
+        logEvent(
+            tag = tag,
+            message = details,
+            level = LogLevel.ERROR
+        )
+    }
+
     fun getLogs(): List<LogEntry> {
         return logEntries.toList().reversed()
     }

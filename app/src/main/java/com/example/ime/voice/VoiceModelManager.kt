@@ -14,11 +14,48 @@ data class VoiceModelInfo(
     val sizeBytes: Long,
     val formattedSize: String,
     val absolutePath: String,
-    val isValid: Boolean
+    val isValid: Boolean,
+    val isAcftOptimized: Boolean = false
+)
+
+data class RecommendedModel(
+    val id: String,
+    val name: String,
+    val description: String,
+    val sizeDisplay: String,
+    val downloadUrl: String,
+    val isAcft: Boolean
 )
 
 object VoiceModelManager {
     private const val TAG = "VoiceModelManager"
+
+    val RECOMMENDED_FUTO_MODELS = listOf(
+        RecommendedModel(
+            id = "whisper_tiny_en_acft",
+            name = "FUTO Whisper Tiny English (ACFT)",
+            description = "Fine-tuned specifically for mobile voice input. Ultra-low latency, ~75 MB.",
+            sizeDisplay = "~75 MB",
+            downloadUrl = "https://huggingface.co/futo-org/whisper-tiny-en-acft/resolve/main/ggml-model.bin",
+            isAcft = true
+        ),
+        RecommendedModel(
+            id = "whisper_base_en_acft",
+            name = "FUTO Whisper Base English (ACFT)",
+            description = "High accuracy conversational speech recognition. Recommended for noisy environments, ~142 MB.",
+            sizeDisplay = "~142 MB",
+            downloadUrl = "https://huggingface.co/futo-org/whisper-base-en-acft/resolve/main/ggml-model.bin",
+            isAcft = true
+        ),
+        RecommendedModel(
+            id = "whisper_tiny_multilingual",
+            name = "Whisper Tiny Multilingual",
+            description = "Supports multi-language transcription and automatic language detection, ~151 MB.",
+            sizeDisplay = "~151 MB",
+            downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+            isAcft = false
+        )
+    )
     const val MODEL_DIR_NAME = "voice_models"
     const val ACTIVE_MODEL_FILE_NAME = "model.bin"
     private const val PREFS_NAME = "vian_voice_prefs"
@@ -58,13 +95,15 @@ object VoiceModelManager {
         val sizeBytes = file.length()
         val formattedSize = formatFileSize(sizeBytes)
         val isValid = isValidModelHeader(file)
+        val isAcft = displayName.lowercase().contains("acft")
 
         return VoiceModelInfo(
             fileName = displayName,
             sizeBytes = sizeBytes,
             formattedSize = formattedSize,
             absolutePath = file.absolutePath,
-            isValid = isValid
+            isValid = isValid,
+            isAcftOptimized = isAcft
         )
     }
 

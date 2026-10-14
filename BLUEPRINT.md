@@ -375,3 +375,56 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   2. Unignored from `/.gitignore` so the `export/` folder and ZIP file are immediately visible in the AI Studio Code tab explorer.
   3. Filtered out all intermediate Gradle build caches (`build/*`, `.gradle/*`), platform internals (`.aistudio/*`), binaries (`.build-outputs/*`), and sensitive keystores (`debug.keystore*`) per Mandates 2 and 3.
   4. Archive is verified pristine, ready for download via AI Studio file explorer and direct push to GitHub.
+
+---
+
+### [2026-10-13 17:00:00 UTC] - Update: Security Vault (KeePass KDBX & Hardware AES-256-GCM) Ecosystem Import
+- **Changes**:
+  1. `app/build.gradle.kts`: Linked Kotpass (`libs.kotpass` 0.13.0) for KDBX 3.1 & 4.x binary parsing and encoding.
+  2. `VaultEntities.kt`: Created data models `VaultGroupEntity`, `VaultEntryEntity`, and `VaultAttachmentEntity` mirroring KeePass groups and entries with encrypted byte blobs for sensitive fields.
+  3. `SecurityVaultDatabase.kt`: Implemented sandbox SQLite database in `context.noBackupFilesDir` with foreign key cascades and indices.
+  4. `SecurityVaultDao.kt`: Thread-safe SQLite DAO supporting folder hierarchies, fast package/URL indexed matching, change notifications, and atomic transactions.
+  5. `VaultCryptoManager.kt`: Hardware-backed AES-256-GCM authenticated encryption utilizing Android's `AndroidKeyStore` provider with explicit in-memory zeroization.
+  6. `TotpGenerator.kt`: Pure Kotlin RFC 6238 TOTP generator supporting Base32, `otpauth://` URIs, SHA-1/256/512, and 6/8-digit live token generation.
+  7. `PasswordGenerator.kt`: Cryptographic high-entropy password and passphrase generator with NIST entropy scoring.
+  8. `KdbxRepository.kt` & `KdbxSyncManager.kt`: KeePass KDBX SAF file import/export engine supporting composite credentials (password + key file), custom fields, and conflict-aware 2-way sync with visual diff sheets.
+  9. `SecurityVaultContextSniffer.kt`: Context-sensitive credential sniffer matching active application packages and input hints.
+  10. `TotpCircleProgressView.kt` & `KdbxEntriesAdapter.kt`: Live 30s circular countdown progress ring view and hierarchical accordion adapter.
+  11. `activity_security_vault_settings.xml` & `SecurityVaultSettingsActivity.kt`: Dual-tab settings interface integrating Privacy Vault (quick phrases) and Security Vault (KDBX KeePass) with CRUD dialogs, visual diff preview, and live token display.
+  12. `LogKeeper.kt`: Added `logError(tag, message, throwable)` overload for clean diagnostic tracing.
+
+---
+
+### [2026-10-13 20:50:00 UTC] - Update: FUTO Voice Input Engine Integration (Option 2 — Zero-Bloat Post-Install SAF Import)
+- **Changes**:
+  1. `jni_whisper.cpp`: Implemented `fullTranscribeWithParams` accepting dynamic decoding parameters (temperature, beam search flag, non-speech token suppression, language specification) alongside dynamic audio context length (`audio_ctx`) optimization; exposed complete JNI bindings for `com.example.ime.voice.WhisperEngine` and maintained backward-compatible signatures.
+  2. `WhisperEngine.kt`: Extended `transcribe` signature and JNI external declarations to support `temperature`, `useBeamSearch`, `language`, and `suppressNonSpeech` with graceful fallback to `fullTranscribe` if older native binaries are detected.
+  3. `VoiceInputService.kt`: Connected live decoding parameters from `VoiceModelManager` (temperature) and `VoiceSettingsPreferences` (suppress annotations, verbose mode, beam search) directly into the background Whisper inference executor.
+  4. `.github/workflows/build-apk.yml`: CMake NDK build step verified for multi-ABI compilation (`arm64-v8a`, `armeabi-v7a`, `x86_64`) ensuring `libwhisper.so` compiles with ARM NEON SIMD optimizations into `app/src/main/jniLibs/`.
+  5. `Option 2 Verification`: Verified zero APK asset bloat. Models are loaded strictly post-install via Storage Access Framework (SAF) into `context.noBackupFilesDir/voice_models/model.bin` with magic header validation (`0x67676d6c`, `0x47475546`). Modal UI (`VianVoiceModalView.kt`) displays the missing model banner with one-tap SAF import shortcut whenever no model is installed.
+
+---
+
+### [2026-10-13 22:00:00 UTC] - Update: FUTO Voice Input Engine Full Parity (Context Continuity, Repetition Guards, Smart Formatting & Audio Focus)
+- **Changes**:
+  1. `jni_whisper.cpp`: Added `jInitialPrompt` support in `fullTranscribeWithParams` for both `helium314` and `com.example.ime` JNI namespaces. Dynamically binds `wparams.initial_prompt` to provide trailing word context to Whisper's decoder tokens.
+  2. `WhisperEngine.kt`: Extended `transcribe` with `initialPrompt: String?`. Implemented `filterRepetitionLoops` (detects and collapses consecutive 3+ repeating n-grams of up to 4 words to eliminate Whisper hallucinations during background hum/silence) and `filterPhantomPhrases` (filters known silence phantom strings like "Thank you for watching", "Please subscribe", "Amara.org").
+  3. `VoiceInputService.kt`: Added rolling prompt context buffer (`rollingPromptContext`). Feeds trailing 30 words from previous final speech segments into Whisper inference passes, ensuring continuous conversational and grammatical context across speech pauses.
+  4. `VoiceInputFormatter.kt`: Created dedicated formatter implementing FUTO-style cursor-aware text formatting. Inspects text before cursor via `InputConnection`: automatically inserts leading space when preceding character is not whitespace, and capitalizes initial letter after sentence terminators (`. `, `! `, `? `) or on blank lines. Connected into `VianBoardService.kt` voice modal text commit callback.
+  5. `AudioRecordPipeline.kt`: Added `MODIFY_AUDIO_SETTINGS` permission in `AndroidManifest.xml`. Integrated Android AudioFocus (`AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE`) to pause/duck background media during voice dictation, and wired Bluetooth SCO headset microphone routing (`startBluetoothSco()` / `stopBluetoothSco()`).
+  6. `.github/workflows/build-apk.yml` & `app/build.gradle.kts`: Extended CMake NDK build and Gradle `ndk.abiFilters` to include `x86_64` alongside `arm64-v8a` and `armeabi-v7a`.
+
+---
+
+### [2026-10-14 08:50:00 UTC] - Update: FUTO Voice Input 1-to-1 Engine Parity (Excluding Gap 3)
+- **Changes**:
+  1. `app/src/main/jni/whisper/jni_whisper.cpp`: Implemented 1-to-1 JNI export bindings for `Java_org_futo_voiceinput_WhisperGGML_*` (`initContext`, `freeContext`, `fullTranscribe`, `fullTranscribeWithParams`), providing binary symbol parity with FUTO's `libvoiceinput.so`.
+  2. `app/src/main/java/org/futo/voiceinput/WhisperGGML.kt`: Created the exact `org.futo.voiceinput.WhisperGGML` Kotlin class mirroring FUTO's native bridge structure for complete drop-in interoperability.
+  3. `app/src/main/java/com/example/ime/voice/EnergyVad.kt`: Upgraded to WebRTC-grade Voice Activity Detection combining multi-band spectral formant estimation (distinguishing voice bands from low rumble/hum), Zero Crossing Rate (ZCR) filtering, dynamic asymmetric noise-floor tracking, hangover smoothing (12 frames, ~240ms), and continuous silence tracking for Auto-Stop on Silence.
+  4. `app/src/main/java/com/example/ime/voice/AudioRecordPipeline.kt`: Added `onSilenceTimeout()` callback to `AudioPipelineListener` and auto-stop silence threshold property delegating to `EnergyVad`.
+  5. `app/src/main/java/com/example/ime/voice/VoiceInputService.kt`: Implemented `onSilenceTimeout()` handling to automatically commit speech and transition cleanly to `IDLE` ready state when user speech concludes.
+  6. `app/src/main/java/com/example/ime/voice/VoiceSettingsPreferences.kt`: Added `KEY_AUTO_STOP_ON_SILENCE` preference with getter/setter (default `true`).
+  7. `app/src/main/res/values/strings.xml`: Added string resources for Auto-Stop on Silence (`voice_setting_auto_stop_on_silence_title`, `voice_setting_auto_stop_on_silence_summary`) and recommended models (`voice_recommended_models_title`, `voice_recommended_models_summary`).
+  8. `app/src/main/res/layout/activity_voice_input_settings.xml` & `VoiceInputSettingsActivity.kt`: Added `switchAutoStopOnSilence` UI toggle in Settings, and updated model status card to detect and display ACFT model optimization.
+  9. `app/src/main/java/com/example/ime/voice/VoiceModelManager.kt`: Added `RECOMMENDED_FUTO_MODELS` list (Tiny English ACFT ~75MB, Base English ACFT ~142MB, Multilingual ~151MB) and ACFT model detection (`isAcftOptimized`).
+  10. Security scan executed: Purged `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.

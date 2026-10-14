@@ -43,6 +43,7 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
 
     private val audioBuffer = ArrayList<Float>(MAX_SPEECH_SAMPLES)
     private val bufferLock = Any()
+    private var rollingPromptContext: String? = null
 
     private val autoShutdownRunnable = Runnable {
         LogKeeper.logEvent(TAG, "Idle timeout reached (60s). Releasing audio pipeline and stopping service.")
@@ -53,7 +54,7 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
     override fun onCreate() {
         super.onCreate()
         LogKeeper.logEvent(TAG, "VoiceInputService created in isolated process: ${android.os.Process.myPid()}")
-        audioPipeline = AudioRecordPipeline(this)
+        audioPipeline = AudioRecordPipeline(this, this)
         resetIdleTimeout()
     }
 
@@ -145,6 +146,7 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
         synchronized(bufferLock) {
             audioBuffer.clear()
         }
+        rollingPromptContext = null
         lastInterimInferenceTime = System.currentTimeMillis()
 
         audioPipeline?.gainMultiplier = gain
@@ -215,6 +217,17 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
         }
     }
 
+    override fun onSilenceTimeout() {
+        if (VoiceSettingsPreferences.isAutoStopOnSilenceEnabled(this) &&
+            currentState == VoiceIpcProtocol.ServiceState.RECORDING
+        ) {
+            LogKeeper.logEvent(TAG, "Silence timeout detected; auto-stopping voice recording")
+            serviceHandler.post {
+                stopRecording()
+            }
+        }
+    }
+
     override fun onAudioChunkAvailable(buffer: ShortArray, readSize: Int) {
         synchronized(bufferLock) {
             if (audioBuffer.size + readSize > MAX_SPEECH_SAMPLES) {
@@ -265,11 +278,26 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
             try {
                 val suppress = VoiceSettingsPreferences.isSuppressNonSpeechEnabled(this@VoiceInputService)
                 val verbose = VoiceSettingsPreferences.isVerboseModeEnabled(this@VoiceInputService)
-                val rawText = whisperEngine.transcribe(samplesCopy, suppressNonSpeech = suppress, verbose = verbose)
+                val temperature = VoiceModelManager.getTemperature(this@VoiceInputService)
+                val beamSearch = VoiceSettingsPreferences.isUseBeamSearchEnabled(this@VoiceInputService)
+                val prompt = rollingPromptContext
+                val rawText = whisperEngine.transcribe(
+                    samplesCopy,
+                    suppressNonSpeech = suppress,
+                    verbose = verbose,
+                    temperature = temperature,
+                    useBeamSearch = beamSearch,
+                    language = "auto",
+                    initialPrompt = prompt
+                )
                 if (!rawText.isNullOrBlank()) {
                     // Apply user word replacements
                     val processedText = WordReplacementStore.applyReplacements(this@VoiceInputService, rawText)
                     if (isFinalPass) {
+                        // Update rolling context with trailing words
+                        val combined = (rollingPromptContext?.let { "$it $processedText" } ?: processedText).trim()
+                        val words = combined.split(" ").filter { it.isNotBlank() }
+                        rollingPromptContext = words.takeLast(30).joinToString(" ")
                         sendFinalCommitToClient(processedText)
                     } else {
                         sendPreviewToClient(processedText)

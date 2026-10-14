@@ -1365,6 +1365,10 @@ New dictionary:
     <string name="voice_setting_legacy_30s_limit_summary">Caps single dictation recording at 30 seconds</string>
     <string name="voice_setting_haptic_feedback_title">Haptic Feedback</string>
     <string name="voice_setting_haptic_feedback_summary">Vibrate on microphone start, pause, and confirm</string>
+    <string name="voice_setting_auto_stop_on_silence_title">Auto-stop on silence</string>
+    <string name="voice_setting_auto_stop_on_silence_summary">Automatically commit transcription and pause listening when silence is detected</string>
+    <string name="voice_recommended_models_title">Recommended Offline Models</string>
+    <string name="voice_recommended_models_summary">Optimized Whisper ACFT GGML models for fast on-device typing</string>
     <string name="toolbar_settings_title">Toolbar Tools</string>
     <string name="tool_settings">Settings</string>
     <string name="tool_clipboard">Clipboard</string>

@@ -47,6 +47,7 @@ class VoiceInputSettingsActivity : Activity() {
     private lateinit var rowOpenImeSettings: View
     private lateinit var switchLegacy30sLimit: android.widget.Switch
     private lateinit var switchHapticFeedback: android.widget.Switch
+    private lateinit var switchAutoStopOnSilence: android.widget.Switch
 
     private lateinit var btnAddReplacement: Button
     private lateinit var containerReplacements: LinearLayout
@@ -102,7 +103,8 @@ class VoiceInputSettingsActivity : Activity() {
         val modelInfo = VoiceModelManager.getModelInfo(this)
         if (modelInfo != null && modelInfo.isValid) {
             tvModelStatusTitle.text = modelInfo.fileName
-            tvModelStatusDetail.text = "Installed (${modelInfo.formattedSize}) • Valid offline GGML model"
+            val modelType = if (modelInfo.isAcftOptimized) "Valid ACFT-optimized GGML model" else "Valid offline GGML model"
+            tvModelStatusDetail.text = "Installed (${modelInfo.formattedSize}) • $modelType"
             btnDeleteModel.visibility = View.VISIBLE
             btnImportModel.text = "Replace Model (.bin)"
         } else {
@@ -184,6 +186,12 @@ class VoiceInputSettingsActivity : Activity() {
         switchHapticFeedback.isChecked = VoiceSettingsPreferences.isHapticFeedbackEnabled(this)
         switchHapticFeedback.setOnCheckedChangeListener { _, isChecked ->
             VoiceSettingsPreferences.setHapticFeedbackEnabled(this, isChecked)
+        }
+
+        switchAutoStopOnSilence = findViewById(R.id.switchAutoStopOnSilence)
+        switchAutoStopOnSilence.isChecked = VoiceSettingsPreferences.isAutoStopOnSilenceEnabled(this)
+        switchAutoStopOnSilence.setOnCheckedChangeListener { _, isChecked ->
+            VoiceSettingsPreferences.setAutoStopOnSilenceEnabled(this, isChecked)
         }
     }
 

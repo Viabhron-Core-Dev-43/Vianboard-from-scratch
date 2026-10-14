@@ -62,4 +62,12 @@ object VoiceSettingsPreferences {
 
     fun setHapticFeedbackEnabled(context: Context, enabled: Boolean) =
         getPrefs(context).edit().putBoolean(KEY_HAPTIC_FEEDBACK, enabled).apply()
+
+    const val KEY_AUTO_STOP_ON_SILENCE = "voice_auto_stop_on_silence"
+
+    fun isAutoStopOnSilenceEnabled(context: Context): Boolean =
+        getPrefs(context).getBoolean(KEY_AUTO_STOP_ON_SILENCE, true)
+
+    fun setAutoStopOnSilenceEnabled(context: Context, enabled: Boolean) =
+        getPrefs(context).edit().putBoolean(KEY_AUTO_STOP_ON_SILENCE, enabled).apply()
 }

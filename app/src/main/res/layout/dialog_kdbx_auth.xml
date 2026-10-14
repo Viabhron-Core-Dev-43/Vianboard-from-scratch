@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvAuthPromptMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enter KeePass Master Password to unlock or export database:"
+        android:textColor="#0F172A"
+        android:textSize="13sp"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Master Password *"
+        android:textColor="#0F172A"
+        android:textStyle="bold"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/etMasterPassword"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:hint="••••••••"
+        android:textColor="#0F172A"
+        android:textColorHint="#94A3B8"
+        android:background="#F1F5F9"
+        android:paddingHorizontal="10dp"
+        android:inputType="textPassword"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Key File (.key / .keyx) - Optional"
+        android:textColor="#0F172A"
+        android:textStyle="bold"
+        android:textSize="13sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:id="@+id/tvKeyFileName"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="No key file selected"
+            android:gravity="center_vertical"
+            android:textColor="#64748B"
+            android:textSize="13sp"
+            android:background="#F1F5F9"
+            android:paddingHorizontal="10dp" />
+
+        <Button
+            android:id="@+id/btnSelectKeyFile"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Select..."
+            android:textColor="#0284C7"
+            android:background="#E0F2FE"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+</LinearLayout>

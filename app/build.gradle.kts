@@ -17,7 +17,7 @@ android {
 
     resourceConfigurations += listOf("en", "fr")
     ndk {
-      abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+      abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
     }
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -82,6 +82,7 @@ dependencies {
   implementation(libs.androidx.autofill)
   implementation(libs.androidx.viewpager2)
   implementation(libs.kotlinx.serialization.json)
+  implementation(libs.kotpass)
   testImplementation(libs.junit)
   testImplementation(libs.robolectric)
 }

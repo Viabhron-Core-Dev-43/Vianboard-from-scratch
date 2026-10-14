@@ -896,7 +896,12 @@ class VianBoardService : InputMethodService() {
                 voiceHeightPx
             )
             onDismissToAlpha = { dismissActiveModal() }
-            onCommitText = { text -> currentInputConnection?.commitText(text, 1) }
+            onCommitText = { text ->
+                val formatted = com.example.ime.voice.VoiceInputFormatter.formatForCommit(currentInputConnection, text)
+                if (formatted.isNotEmpty()) {
+                    currentInputConnection?.commitText(formatted, 1)
+                }
+            }
             onDelete = { sendDelete() }
             onEnter = { sendEnter() }
         }

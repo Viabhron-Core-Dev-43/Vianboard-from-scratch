@@ -217,6 +217,148 @@
 - **Any deviation from what was requested, and why**: None. Followed the finalized plan with zero deviation.
 - **Known issue or follow-up needed**: None. Workspace is stable and verified.
 
+---
 
+### [2026-10-13 17:00:00 UTC] - Receipt Entry 026: Security Vault (KeePass KDBX, Kotpass & Hardware AES-256-GCM) Ecosystem Import
+- **One-line summary**: Imported full KeePass KDBX sandbox engine with hardware AES-256-GCM encryption, Kotpass 4.x parser, RFC 6238 TOTP engine, cryptographic key generator, and dual-tab settings UI.
+- **Exact files touched**:
+  * `app/build.gradle.kts`
+  * `app/src/main/java/com/example/logger/LogKeeper.kt`
+  * `app/src/main/java/com/example/ime/security/vault/data/VaultEntities.kt`
+  * `app/src/main/java/com/example/ime/security/vault/data/SecurityVaultDatabase.kt`
+  * `app/src/main/java/com/example/ime/security/vault/data/SecurityVaultDao.kt`
+  * `app/src/main/java/com/example/ime/security/vault/crypto/VaultCryptoManager.kt`
+  * `app/src/main/java/com/example/ime/security/vault/totp/TotpGenerator.kt`
+  * `app/src/main/java/com/example/ime/security/vault/generator/PasswordGenerator.kt`
+  * `app/src/main/java/com/example/ime/security/vault/engine/KdbxRepository.kt`
+  * `app/src/main/java/com/example/ime/security/vault/engine/KdbxSyncManager.kt`
+  * `app/src/main/java/com/example/ime/security/vault/context/SecurityVaultContextSniffer.kt`
+  * `app/src/main/java/com/example/ime/security/vault/ui/TotpCircleProgressView.kt`
+  * `app/src/main/java/com/example/ime/security/vault/ui/KdbxEntriesAdapter.kt`
+  * `app/src/main/java/com/example/ime/settings/SecurityVaultSettingsActivity.kt`
+  * `app/src/main/res/drawable/ic_folder.xml`
+  * `app/src/main/res/layout/item_kdbx_entry.xml`
+  * `app/src/main/res/layout/item_kdbx_folder.xml`
+  * `app/src/main/res/layout/dialog_kdbx_entry_editor.xml`
+  * `app/src/main/res/layout/dialog_password_generator.xml`
+  * `app/src/main/res/layout/dialog_kdbx_auth.xml`
+  * `app/src/main/res/layout/dialog_kdbx_sync_diff.xml`
+  * `app/src/main/res/layout/activity_security_vault_settings.xml`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Linked Kotpass 0.13.0 in `app/build.gradle.kts`.
+  2. Implemented sandbox database layer in `noBackupFilesDir` with foreign key cascades and indexed queries (`VaultEntities.kt`, `SecurityVaultDatabase.kt`, `SecurityVaultDao.kt`).
+  3. Implemented hardware-backed AES-256-GCM encryption with AndroidKeyStore and in-memory zeroization (`VaultCryptoManager.kt`).
+  4. Implemented pure Kotlin RFC 6238 TOTP generator with Base32 decoding and live time calculations (`TotpGenerator.kt`).
+  5. Implemented NIST entropy-rated cryptographic key and passphrase generator (`PasswordGenerator.kt`).
+  6. Implemented KeePass KDBX file importer/exporter and conflict-aware 2-way sync engine (`KdbxRepository.kt`, `KdbxSyncManager.kt`).
+  7. Built context sniffer for active app package and hint matching (`SecurityVaultContextSniffer.kt`).
+  8. Created custom live countdown view `TotpCircleProgressView` and accordion list adapter `KdbxEntriesAdapter`.
+  9. Enhanced `SecurityVaultSettingsActivity` and `activity_security_vault_settings.xml` with dual-tab support, full entry editor dialogs, SAF import/export flows, visual diff sheets, and live TOTP ticking.
+  10. Added `logError(tag, message, throwable)` helper to `LogKeeper.kt`.
+  11. Executed silent security scan and purged build-generated keystores per Mandates 2 and 3.
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Robolectric test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 2s, 30 actionable tasks, all tests passing).
+  - Keystore scan verified clean (0 committed keystores).
+- **Any deviation from what was requested, and why**: None. Followed the finalized plan with zero deviation.
+### [2026-10-13 20:50:00 UTC] - Receipt Entry 027: FUTO Voice Input Engine Integration (Option 2 — Zero-Bloat Post-Install SAF Import)
+- **One-line summary**: Upgraded Voice Input engine with dynamic decoding parameters, multi-parameter JNI bindings, and full connection to keyboard voice modal under Option 2 (zero bundled model bloat; post-install SAF import).
+- **Exact files touched**:
+  * `app/src/main/jni/whisper/jni_whisper.cpp`
+  * `app/src/main/java/com/example/ime/voice/WhisperEngine.kt`
+  * `app/src/main/java/com/example/ime/voice/VoiceInputService.kt`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Updated `jni_whisper.cpp` to introduce `fullTranscribeWithParams` accepting temperature, beam search, non-speech token suppression, language specification, and dynamic audio context optimization (`audio_ctx`), with complete JNI bindings for `com.example.ime.voice.WhisperEngine`.
+  2. Extended `WhisperEngine.kt` with configurable `transcribe` options and fallback logic to basic `fullTranscribe` if older native libraries are detected.
+  3. Integrated live temperature and beam search user settings from `VoiceModelManager` and `VoiceSettingsPreferences` into `VoiceInputService.kt` background inference pass.
+  4. Preserved Option 2 strictly: zero pre-packaged GGML models in the APK, maintaining lean APK distribution with user model import via Storage Access Framework (`VoiceModelManager.kt` & `VoiceInputSettingsActivity.kt`) and missing model warning banner in `VianVoiceModalView.kt`.
+  5. Performed workspace security scan and verified clean state.
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Background unit test task initiated and validated.
+  - Zero exposed credentials or unmanaged keystores.
+- **Any deviation from what was requested, and why**: None. Followed Option 2 strictly as planned.
+- **Known issue or follow-up needed**: On-device manual verification of voice modal flow once model is imported.
 
+### [2026-10-13 22:00:00 UTC] - Receipt Entry 028: FUTO Voice Input Engine Full Parity Implementation
+- **One-line summary**: Implemented full FUTO engine parity: context continuity (`initial_prompt`), repetition loop and phantom hallucination filtering, cursor-aware auto-spacing and capitalization, AudioFocus management, and Bluetooth SCO headset routing.
+- **Exact files touched**:
+  * `app/src/main/AndroidManifest.xml`
+  * `app/src/main/jni/whisper/jni_whisper.cpp`
+  * `app/src/main/java/com/example/ime/voice/WhisperEngine.kt`
+  * `app/src/main/java/com/example/ime/voice/AudioRecordPipeline.kt`
+  * `app/src/main/java/com/example/ime/voice/VoiceInputService.kt`
+  * `app/src/main/java/com/example/ime/voice/VoiceInputFormatter.kt`
+  * `app/src/main/java/com/example/ime/VianBoardService.kt`
+  * `.github/workflows/build-apk.yml`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Updated `jni_whisper.cpp` with `jInitialPrompt` support in `fullTranscribeWithParams` for both `helium314` and `com.example.ime` JNI interfaces, binding `wparams.initial_prompt` with proper UTF allocation/deallocation.
+  2. Enhanced `WhisperEngine.kt`: added `initialPrompt: String?` parameter to `transcribe`, implemented `filterRepetitionLoops` (collapsing 3+ consecutive repeating n-grams of 1-4 words) and `filterPhantomPhrases` (filtering known Whisper silence phantom strings like "Thank you for watching", "Please subscribe", "Amara.org").
+  3. Enhanced `VoiceInputService.kt`: created `rollingPromptContext` buffer tracking trailing 30 words from previous final speech segments to provide grammatical and vocabulary context to Whisper on subsequent utterances across pauses.
+  4. Created `VoiceInputFormatter.kt`: intelligent cursor-aware formatting that checks text before cursor via `InputConnection`: automatically prepends leading space if preceding character is not whitespace/punctuation, and auto-capitalizes first word if preceding text ends in sentence boundary (`. `, `! `, `? `, `\n`) or is empty. Wired into `VianBoardService.kt` `onCommitText`.
+  5. Updated `AudioRecordPipeline.kt`: declared `MODIFY_AUDIO_SETTINGS` in `AndroidManifest.xml`, added AudioFocus acquisition (`AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE`) to pause/duck background media during recording, and added Bluetooth SCO microphone link handling (`startBluetoothSco()` / `stopBluetoothSco()`).
+  6. Extended `.github/workflows/build-apk.yml` CMake NDK build step to include `x86_64` alongside `arm64-v8a` and `armeabi-v7a`.
+  7. Performed silent keystore scan and purged auto-generated `debug.keystore` files per Mandates 2 and 3.
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Robolectric test suite passed via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 29s, 30 actionable tasks, all test suites passing).
+  - Workspace security scan confirmed 0 unmanaged keystores and 0 committed credentials.
+- **Any deviation from what was requested, and why**: None. Followed finalized plan meticulously.
+- **Known issue or follow-up needed**: Ready for on-device APK export and manual verification.
+
+---
+
+### [2026-10-14 06:30:00 UTC] - Receipt Entry 029: NDK ABI Filter Alignment & Verification
+- **One-line summary**: Synchronized `x86_64` in `app/build.gradle.kts` `ndk.abiFilters` alongside `arm64-v8a` and `armeabi-v7a`, aligning packaging with CI CMake build targets, and validated full test suite.
+- **Exact files touched**:
+  * `app/build.gradle.kts`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Updated `app/build.gradle.kts` `ndk.abiFilters` to include `"x86_64"` matching the multi-ABI build configuration in `.github/workflows/build-apk.yml`.
+  2. Executed `compile_applet` to confirm clean Gradle sync and compilation.
+  3. Ran full local unit test suite via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL, 30 actionable tasks, all test suites passing).
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Robolectric test suite passed via `gradle :app:testDebugUnitTest`.
+  - Workspace scanned: 0 exposed secrets or committed credentials.
+- **Any deviation from what was requested, and why**: None.
+- **Known issue or follow-up needed**: Ready for export and on-device testing.
+
+---
+
+### [2026-10-14 08:50:00 UTC] - Receipt Entry 030: FUTO Voice Input 1-to-1 Engine Parity (Excluding Gap 3)
+- **One-line summary**: Implemented 1-to-1 FUTO Voice Input engine parity: JNI `org_futo_voiceinput_WhisperGGML` bindings and Kotlin bridge, WebRTC-grade multi-band VAD with ZCR & hangover smoothing, Auto-Stop on Silence, and FUTO ACFT model integration.
+- **Exact files touched**:
+  * `app/src/main/jni/whisper/jni_whisper.cpp`
+  * `app/src/main/java/org/futo/voiceinput/WhisperGGML.kt`
+  * `app/src/main/java/com/example/ime/voice/EnergyVad.kt`
+  * `app/src/main/java/com/example/ime/voice/AudioRecordPipeline.kt`
+  * `app/src/main/java/com/example/ime/voice/VoiceInputService.kt`
+  * `app/src/main/java/com/example/ime/voice/VoiceSettingsPreferences.kt`
+  * `app/src/main/java/com/example/ime/voice/VoiceModelManager.kt`
+  * `app/src/main/res/values/strings.xml`
+  * `app/src/main/res/layout/activity_voice_input_settings.xml`
+  * `app/src/main/java/com/example/ime/settings/VoiceInputSettingsActivity.kt`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Purged workspace of all build-generated keystores (`debug.keystore`, `debug.keystore.base64`) and binaries (`app-debug.apk`) per Mandates 2 and 3.
+  2. Implemented `org_futo_voiceinput_WhisperGGML` export symbols in `jni_whisper.cpp` matching FUTO's exact native shared library interface.
+  3. Created `org.futo.voiceinput.WhisperGGML` in Kotlin matching FUTO's exact package and class signature for 1-to-1 drop-in binary compatibility.
+  4. Upgraded `EnergyVad.kt` to WebRTC-grade multi-band voice activity detection with Zero-Crossing Rate (ZCR) filtering, dynamic asymmetric noise-floor tracking, hangover smoothing (~240ms), and continuous silence tracking.
+  5. Implemented `onSilenceTimeout()` callback in `AudioRecordPipeline.kt` and `VoiceInputService.kt` for automatic speech boundary commit and ready transition.
+  6. Added `KEY_AUTO_STOP_ON_SILENCE` preference with getter/setter in `VoiceSettingsPreferences.kt`, added string resources in `strings.xml`, and added switch UI toggle in `activity_voice_input_settings.xml` and `VoiceInputSettingsActivity.kt`.
+  7. Added FUTO ACFT recommended models and detection (`isAcftOptimized`) in `VoiceModelManager.kt` and displayed in `VoiceInputSettingsActivity.kt`.
+- **How it was verified**:
+  - `compile_applet` passed (BUILD SUCCESSFUL).
+  - Robolectric test suite passed via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 19s, 30 actionable tasks, all test suites passing).
+  - Workspace security scan confirmed 0 unmanaged keystores and 0 committed credentials.
+- **Any deviation from what was requested, and why**: None. Gap 3 was strictly excluded as requested.
+- **Known issue or follow-up needed**: Ready for on-device manual QA and export.
 

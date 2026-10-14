@@ -1,20 +1,28 @@
 package com.example.ime.voice
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Build
 import com.example.logger.LogKeeper
 import kotlin.math.sqrt
 
 /**
  * High-performance, low-latency audio capture pipeline for speech recognition.
  * Captures 16kHz 16-bit mono PCM, applies 3-stage digital gain with anti-clipping limiter,
- * calculates smoothed RMS levels, and detects speech activity via EnergyVad.
+ * calculates smoothed RMS levels, handles AudioFocus/Bluetooth SCO, and detects speech activity via EnergyVad.
  */
 class AudioRecordPipeline(
+    private val context: Context? = null,
     private val listener: AudioPipelineListener
 ) {
+    constructor(listener: AudioPipelineListener) : this(null, listener)
+
     companion object {
         private const val TAG = "AudioRecordPipeline"
         const val SAMPLE_RATE_HZ = 16000
@@ -27,6 +35,7 @@ class AudioRecordPipeline(
         fun onRmsChanged(rms: Float)
         fun onSpeechActivityChanged(isSpeaking: Boolean)
         fun onAudioChunkAvailable(buffer: ShortArray, readSize: Int)
+        fun onSilenceTimeout()
         fun onError(message: String)
     }
 
@@ -45,6 +54,14 @@ class AudioRecordPipeline(
     private var workerThread: Thread? = null
     private var audioRecord: AudioRecord? = null
     private val energyVad = EnergyVad()
+    private val audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+    private var audioFocusRequest: Any? = null
+
+    var autoStopSilenceThresholdMs: Long
+        get() = energyVad.autoStopSilenceThresholdMs
+        set(value) {
+            energyVad.autoStopSilenceThresholdMs = value
+        }
 
     @SuppressLint("MissingPermission")
     @Synchronized
@@ -88,6 +105,9 @@ class AudioRecordPipeline(
                     return false
                 }
             }
+
+            requestAudioFocus()
+            startBluetoothScoIfAvailable()
 
             audioRecord?.startRecording()
             isRunning = true
@@ -143,6 +163,8 @@ class AudioRecordPipeline(
             LogKeeper.logError(TAG, "Exception stopping AudioRecord", e.message ?: "")
         } finally {
             audioRecord = null
+            stopBluetoothSco()
+            abandonAudioFocus()
         }
 
         LogKeeper.logEvent(TAG, "Audio recording stopped")
@@ -150,6 +172,80 @@ class AudioRecordPipeline(
 
     fun release() {
         stop()
+    }
+
+    private fun requestAudioFocus() {
+        val am = audioManager ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val focusReq = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                            .build()
+                    )
+                    .setAcceptsDelayedFocusGain(false)
+                    .setOnAudioFocusChangeListener { /* transient capture */ }
+                    .build()
+                audioFocusRequest = focusReq
+                am.requestAudioFocus(focusReq)
+            } else {
+                @Suppress("DEPRECATION")
+                am.requestAudioFocus(
+                    null,
+                    AudioManager.STREAM_VOICE_CALL,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+                )
+            }
+            LogKeeper.logEvent(TAG, "Audio focus acquired for speech recognition")
+        } catch (e: Exception) {
+            LogKeeper.logWarning(TAG, "Could not acquire audio focus: ${e.message}")
+        }
+    }
+
+    private fun abandonAudioFocus() {
+        val am = audioManager ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                (audioFocusRequest as? AudioFocusRequest)?.let {
+                    am.abandonAudioFocusRequest(it)
+                }
+                audioFocusRequest = null
+            } else {
+                @Suppress("DEPRECATION")
+                am.abandonAudioFocus(null)
+            }
+            LogKeeper.logEvent(TAG, "Audio focus released")
+        } catch (e: Exception) {
+            LogKeeper.logWarning(TAG, "Could not release audio focus: ${e.message}")
+        }
+    }
+
+    private fun startBluetoothScoIfAvailable() {
+        val am = audioManager ?: return
+        try {
+            if (am.isBluetoothScoAvailableOffCall) {
+                am.startBluetoothSco()
+                am.isBluetoothScoOn = true
+                LogKeeper.logEvent(TAG, "Bluetooth SCO audio link started")
+            }
+        } catch (e: Exception) {
+            LogKeeper.logWarning(TAG, "Failed to activate Bluetooth SCO: ${e.message}")
+        }
+    }
+
+    private fun stopBluetoothSco() {
+        val am = audioManager ?: return
+        try {
+            if (am.isBluetoothScoOn) {
+                am.stopBluetoothSco()
+                am.isBluetoothScoOn = false
+                LogKeeper.logEvent(TAG, "Bluetooth SCO audio link stopped")
+            }
+        } catch (e: Exception) {
+            LogKeeper.logWarning(TAG, "Failed to stop Bluetooth SCO: ${e.message}")
+        }
     }
 
     private fun recordLoop(bufferSize: Int) {
@@ -212,9 +308,16 @@ class AudioRecordPipeline(
 
             // Voice Activity Detection
             val wasSpeaking = energyVad.isSpeechDetected
+            val wasSilenceTimeout = energyVad.isSilenceTimeout
             val isSpeakingNow = energyVad.processFrame(buffer, readCount)
+            val isSilenceTimeoutNow = energyVad.isSilenceTimeout
+
             if (wasSpeaking != isSpeakingNow) {
                 listener.onSpeechActivityChanged(isSpeakingNow)
+            }
+
+            if (!wasSilenceTimeout && isSilenceTimeoutNow) {
+                listener.onSilenceTimeout()
             }
 
             // Pass chunk to listener for buffering/inference

@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Header Toolbar -->
+        <!-- Top Header Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="56dp"
@@ -36,68 +36,23 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Privacy Vault"
+                android:text="Vault Security"
                 android:textColor="#0F172A"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:gravity="center"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp" />
 
             <Button
-                android:id="@+id/btnAddVaultEntry"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="+ Add"
-                android:textColor="#FFFFFF"
-                android:background="#7C3AED"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E2E8F0" />
-
-        <!-- Minimal Subtle Security Badge (HeliBoard style) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="#FAF5FF"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp">
-
-            <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:src="@drawable/ic_security_vault"
-                android:tint="#7C3AED"
-                android:contentDescription="Security badge" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Air-gapped partition · Zero learning guarantee"
-                android:textColor="#6B21A8"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:layout_marginStart="8dp" />
-
-            <Button
                 android:id="@+id/btnLockNow"
                 android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:text="Lock"
+                android:layout_height="36dp"
+                android:text="🔒 Lock"
                 android:textColor="#DC2626"
-                android:textSize="11sp"
-                android:textStyle="bold"
                 android:background="#FEE2E2"
+                android:textSize="12sp"
+                android:textStyle="bold"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp" />
         </LinearLayout>
@@ -105,165 +60,425 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#E9D5FF" />
+            android:background="#E2E8F0" />
 
-        <!-- Preference Controls & Search Row -->
+        <!-- Segmented Tab Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#FFFFFF"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp">
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="#F1F5F9">
 
-            <!-- Stealth Pattern Unlock Preference Row -->
+            <Button
+                android:id="@+id/btnTabPrivacy"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:text="🔐 Privacy Vault"
+                android:textColor="#FFFFFF"
+                android:background="#7C3AED"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnTabKdbx"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:text="🛡️ Security Vault (KDBX)"
+                android:textColor="#475569"
+                android:background="#E2E8F0"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- TAB 1: PRIVACY VAULT CONTAINER -->
+        <LinearLayout
+            android:id="@+id/layoutPrivacyTab"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <!-- Privacy Badge -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="#F8FAFC"
-                android:padding="10dp"
-                android:layout_marginBottom="10dp">
+                android:background="#FAF5FF"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp">
 
                 <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:src="@drawable/ic_security_vault"
                     android:tint="#7C3AED"
-                    android:contentDescription="Stealth mode"
-                    android:layout_marginEnd="10dp" />
+                    android:contentDescription="Security badge" />
 
-                <LinearLayout
+                <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Stealth Pattern Unlock"
-                        android:textColor="#0F172A"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Disguise pattern unlock with keyboard keycaps &amp; subtle dots"
-                        android:textColor="#64748B"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switchStealthPattern"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:text="Air-gapped phrases · Injected via direct InputConnection"
+                    android:textColor="#6B21A8"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
                     android:layout_marginStart="8dp" />
+
+                <Button
+                    android:id="@+id/btnAddVaultEntry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:text="+ Add"
+                    android:textColor="#FFFFFF"
+                    android:background="#7C3AED"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:paddingHorizontal="10dp" />
             </LinearLayout>
 
-            <!-- Toggles and Reveal Button -->
+            <!-- Preferences Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- Stealth Pattern Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Auto-relock"
-                    android:textColor="#475569"
-                    android:textSize="13sp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="#F8FAFC"
+                    android:padding="8dp"
+                    android:layout_marginBottom="6dp">
 
-                <Switch
-                    android:id="@+id/switchAutoRelock"
-                    android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Stealth Pattern Unlock"
+                            android:textColor="#0F172A"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Disguise unlock screen using keyboard keycaps"
+                            android:textColor="#64748B"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <Switch
+                        android:id="@+id/switchStealthPattern"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <!-- Toggles Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:layout_marginStart="6dp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="6dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Biometric"
-                    android:textColor="#475569"
-                    android:textSize="13sp"
-                    android:layout_marginStart="12dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Auto-relock"
+                        android:textColor="#475569"
+                        android:textSize="12sp" />
 
-                <Switch
-                    android:id="@+id/switchBiometricOnly"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="false"
-                    android:layout_marginStart="6dp" />
+                    <Switch
+                        android:id="@+id/switchAutoRelock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:layout_marginStart="4dp" />
 
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Biometric"
+                        android:textColor="#475569"
+                        android:textSize="12sp"
+                        android:layout_marginStart="10dp" />
 
-                <Button
-                    android:id="@+id/btnToggleReveal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="👁️ Show Plaintext"
+                    <Switch
+                        android:id="@+id/switchBiometricOnly"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        android:layout_marginStart="4dp" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <Button
+                        android:id="@+id/btnToggleReveal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:text="👁️ Reveal"
+                        android:textColor="#0F172A"
+                        android:textSize="10sp"
+                        android:background="#E2E8F0"
+                        android:paddingHorizontal="8dp" />
+                </LinearLayout>
+
+                <!-- Search Input -->
+                <EditText
+                    android:id="@+id/etVaultSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:hint="Search quick phrases..."
+                    android:textSize="12sp"
                     android:textColor="#0F172A"
-                    android:textSize="11sp"
-                    android:background="#E2E8F0"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp" />
+                    android:textColorHint="#94A3B8"
+                    android:background="#F1F5F9"
+                    android:paddingHorizontal="10dp"
+                    android:singleLine="true" />
             </LinearLayout>
 
-            <!-- Search input -->
-            <EditText
-                android:id="@+id/etVaultSearch"
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:hint="Search vault entries..."
-                android:textSize="13sp"
-                android:textColor="#0F172A"
-                android:textColorHint="#94A3B8"
-                android:background="#F1F5F9"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:singleLine="true" />
+                android:layout_height="1dp"
+                android:background="#E2E8F0" />
+
+            <!-- Items List -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvVaultEntries"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:clipToPadding="false" />
+
+                <TextView
+                    android:id="@+id/tvVaultEmptyState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="No Privacy Vault items yet.\nTap '+ Add' to store phrases."
+                    android:gravity="center"
+                    android:textColor="#94A3B8"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+            </FrameLayout>
         </LinearLayout>
 
-        <View
+        <!-- TAB 2: SECURITY VAULT (KDBX) CONTAINER -->
+        <LinearLayout
+            android:id="@+id/layoutKdbxTab"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E2E8F0" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <!-- Items List -->
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvVaultEntries"
+            <!-- Database Status Card -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="12dp"
-                android:clipToPadding="false" />
-
-            <TextView
-                android:id="@+id/tvVaultEmptyState"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="No Privacy Vault items yet.\nTap '+ Add' to store credentials securely."
-                android:gravity="center"
-                android:textColor="#94A3B8"
-                android:textSize="14sp"
-                android:visibility="gone" />
-        </FrameLayout>
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:src="@drawable/ic_security_vault"
+                        android:tint="#0284C7"
+                        android:contentDescription="KDBX icon" />
+
+                    <TextView
+                        android:id="@+id/tvKdbxDbTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="KeePass KDBX Sandbox"
+                        android:textColor="#0F172A"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="8dp" />
+
+                    <TextView
+                        android:id="@+id/tvKdbxBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="KDBX 4.x · AES-256-GCM"
+                        android:textColor="#0284C7"
+                        android:background="#E0F2FE"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="3dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvKdbxDbStats"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="0 entries · 0 folders · Not connected to external file"
+                    android:textColor="#64748B"
+                    android:textSize="11sp"
+                    android:layout_marginTop="4dp" />
+
+                <!-- Action Buttons Grid -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp">
+
+                    <Button
+                        android:id="@+id/btnKdbxImport"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:text="📥 Import"
+                        android:textColor="#0284C7"
+                        android:background="#E0F2FE"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/btnKdbxExport"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:text="📤 Export"
+                        android:textColor="#475569"
+                        android:background="#F1F5F9"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/btnKdbxSync"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:text="🔄 Sync"
+                        android:textColor="#16A34A"
+                        android:background="#DCFCE7"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="6dp">
+
+                    <Button
+                        android:id="@+id/btnKdbxAddEntry"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:text="+ Entry"
+                        android:textColor="#FFFFFF"
+                        android:background="#0284C7"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/btnKdbxAddFolder"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:text="+ Folder"
+                        android:textColor="#0F172A"
+                        android:background="#E2E8F0"
+                        android:textSize="11sp"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/btnKdbxGenerator"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:text="⚡ Key Gen"
+                        android:textColor="#7C3AED"
+                        android:background="#FAF5FF"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Search row -->
+                <EditText
+                    android:id="@+id/etKdbxSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:hint="Search KDBX credentials, URLs, usernames..."
+                    android:textSize="12sp"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"
+                    android:background="#F1F5F9"
+                    android:paddingHorizontal="10dp"
+                    android:singleLine="true"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E2E8F0" />
+
+            <!-- KDBX Entries Recycler View -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvKdbxEntries"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:clipToPadding="false" />
+
+                <TextView
+                    android:id="@+id/tvKdbxEmptyState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="No KeePass entries in sandbox.\nTap '📥 Import' to load a .kdbx file or '+ Entry' to create one."
+                    android:gravity="center"
+                    android:textColor="#94A3B8"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Locked Overlay Gate -->
+    <!-- Locked Gate Overlay -->
     <LinearLayout
         android:id="@+id/layoutLockGate"
         android:layout_width="match_parent"
@@ -284,7 +499,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Privacy Vault Locked"
+            android:text="Security Vault Locked"
             android:textColor="#0F172A"
             android:textSize="20sp"
             android:textStyle="bold"
