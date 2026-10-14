@@ -428,3 +428,12 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   8. `app/src/main/res/layout/activity_voice_input_settings.xml` & `VoiceInputSettingsActivity.kt`: Added `switchAutoStopOnSilence` UI toggle in Settings, and updated model status card to detect and display ACFT model optimization.
   9. `app/src/main/java/com/example/ime/voice/VoiceModelManager.kt`: Added `RECOMMENDED_FUTO_MODELS` list (Tiny English ACFT ~75MB, Base English ACFT ~142MB, Multilingual ~151MB) and ACFT model detection (`isAcftOptimized`).
   10. Security scan executed: Purged `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.
+
+---
+
+### [2026-10-14 18:15:00 UTC] - Update: Legacy Reference Purge (Vianboard heliboard fork)
+- **Changes**:
+  1. `Vianboard (heliboard fork)/`: Permanently deleted 13.0 MB dead legacy reference directory containing obsolete pre-compiled binary dictionaries (`main_en-US.dict`, `main_fr.dict`, `main_en-GB.dict`), redundant C++ JNI code, and deprecated `helium314` classes.
+  2. Workspace Optimization: Reduced overall workspace footprint from ~17.7 MB down to ~3.5 MB clean active code, completely eliminating duplicate classes and dead weight from repository export archives.
+  3. Verification: Ran `compile_applet` (BUILD SUCCESSFUL) and local unit test suite via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 6s, 30 actionable tasks passing) confirming zero dependencies on the deleted reference folder.
+  4. Security scan executed: Purged auto-generated `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.

@@ -362,3 +362,24 @@
 - **Any deviation from what was requested, and why**: None. Gap 3 was strictly excluded as requested.
 - **Known issue or follow-up needed**: Ready for on-device manual QA and export.
 
+---
+
+### [2026-10-14 18:15:00 UTC] - Receipt Entry 031: Legacy Reference Purge (Vianboard heliboard fork)
+- **One-line summary**: Permanently deleted `Vianboard (heliboard fork)/` directory (13.0 MB dead legacy reference code & binary dictionaries), dropping repository size to clean ~3.5 MB, and validated complete build and unit tests.
+- **Exact files touched**:
+  * `/Vianboard (heliboard fork)/` (Deleted)
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. Recursively deleted the 13.0 MB unpruned legacy reference directory `Vianboard (heliboard fork)/` containing obsolete pre-compiled dictionaries (`main_en-US.dict`, `main_fr.dict`, `main_en-GB.dict`), duplicate C++ JNI code, and legacy `helium314` classes.
+  2. Verified workspace clean size dropped from ~17.7 MB down to ~3.5 MB clean active code.
+  3. Ran `compile_applet` to confirm clean Gradle build (BUILD SUCCESSFUL).
+  4. Ran full local unit test suite via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 6s, 30 actionable tasks passing).
+  5. Scanned workspace and purged build-generated keystores and test APK binaries per Mandates 2 and 3.
+- **How it was verified**:
+  - Local build verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Test suite verified via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 6s, 30 actionable tasks, all test suites passing).
+  - Security scan verified clean: 0 keystores, 0 base64 files, 0 apk binaries.
+- **Any deviation from what was requested, and why**: None. Followed exact user command.
+- **Known issue or follow-up needed**: Ready for export and on-device testing.
+
