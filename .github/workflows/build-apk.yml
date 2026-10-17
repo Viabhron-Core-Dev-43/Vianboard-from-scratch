@@ -40,6 +40,9 @@ jobs:
       - name: Build Native Whisper Library (CMake)
         run: |
           NDK_DIR=$(find $ANDROID_HOME/ndk -maxdepth 1 -mindepth 1 2>/dev/null | sort -V | tail -n 1)
+          if [ -z "$NDK_DIR" ] && [ -n "$ANDROID_NDK_LATEST_HOME" ]; then NDK_DIR="$ANDROID_NDK_LATEST_HOME"; fi
+          if [ -z "$NDK_DIR" ] && [ -n "$ANDROID_NDK_HOME" ]; then NDK_DIR="$ANDROID_NDK_HOME"; fi
+          if [ -z "$NDK_DIR" ] && [ -n "$ANDROID_NDK_ROOT" ]; then NDK_DIR="$ANDROID_NDK_ROOT"; fi
           if [ -n "$NDK_DIR" ] && [ -f "$NDK_DIR/build/cmake/android.toolchain.cmake" ]; then
             echo "Compiling libwhisper.so using CMake for (arm64-v8a, armeabi-v7a, x86_64)..."
             for ABI in armeabi-v7a arm64-v8a x86_64; do

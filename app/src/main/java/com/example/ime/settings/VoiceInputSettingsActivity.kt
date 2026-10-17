@@ -49,6 +49,12 @@ class VoiceInputSettingsActivity : Activity() {
     private lateinit var switchHapticFeedback: android.widget.Switch
     private lateinit var switchAutoStopOnSilence: android.widget.Switch
 
+    private lateinit var llDownloadProgressCard: LinearLayout
+    private lateinit var tvDownloadProgressTitle: TextView
+    private lateinit var pbModelDownload: android.widget.ProgressBar
+    private lateinit var tvDownloadProgressDetail: TextView
+    private lateinit var containerRecommendedModels: LinearLayout
+
     private lateinit var btnAddReplacement: Button
     private lateinit var containerReplacements: LinearLayout
     private lateinit var tvEmptyReplacements: TextView
@@ -60,9 +66,17 @@ class VoiceInputSettingsActivity : Activity() {
         findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
 
         initModelViews()
+        initRecommendedModelsViews()
         initTemperatureViews()
         initAdvancedSettingsViews()
         initWordReplacementViews()
+
+        handleIncomingModelIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handleIncomingModelIntent(it) }
     }
 
     override fun onResume() {
@@ -295,5 +309,175 @@ class VoiceInputSettingsActivity : Activity() {
                 }
             }.start()
         }
+    }
+
+    private fun handleIncomingModelIntent(intent: Intent) {
+        if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
+            val uri = intent.data ?: return
+            Toast.makeText(this, "Importing model from file...", Toast.LENGTH_SHORT).show()
+            Thread {
+                val result = VoiceModelManager.importModelFromUri(this, uri)
+                runOnUiThread {
+                    if (result.isSuccess) {
+                        Toast.makeText(this, "Model imported successfully!", Toast.LENGTH_LONG).show()
+                        refreshModelCard()
+                    } else {
+                        val error = result.exceptionOrNull()?.message ?: "Unknown import error"
+                        AlertDialog.Builder(this)
+                            .setTitle("Model Import Failed")
+                            .setMessage(error)
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+            }.start()
+        }
+    }
+
+    private fun initRecommendedModelsViews() {
+        containerRecommendedModels = findViewById(R.id.containerRecommendedModels)
+        llDownloadProgressCard = findViewById(R.id.llDownloadProgressCard)
+        tvDownloadProgressTitle = findViewById(R.id.tvDownloadProgressTitle)
+        pbModelDownload = findViewById(R.id.pbModelDownload)
+        tvDownloadProgressDetail = findViewById(R.id.tvDownloadProgressDetail)
+
+        containerRecommendedModels.removeAllViews()
+        val models = VoiceModelManager.RECOMMENDED_FUTO_MODELS
+
+        for (model in models) {
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundResource(R.drawable.btn_settings_pill_subtle)
+                setPadding(32, 24, 32, 24)
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomMargin = 24
+                }
+                layoutParams = params
+            }
+
+            val tvTitle = TextView(this).apply {
+                text = "${model.name} (${model.sizeDisplay})"
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+                setTextColor(0xFF0F172A.toInt())
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+            }
+
+            val tvDesc = TextView(this).apply {
+                text = model.description
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                setTextColor(0xFF64748B.toInt())
+                setPadding(0, 8, 0, 16)
+            }
+
+            val btnDownload = Button(this).apply {
+                text = "Download & Install"
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                setTextColor(0xFFFFFFFF.toInt())
+                setBackgroundColor(0xFF2563EB.toInt())
+                setOnClickListener {
+                    startModelDownload(model)
+                }
+            }
+
+            card.addView(tvTitle)
+            card.addView(tvDesc)
+            card.addView(btnDownload)
+            containerRecommendedModels.addView(card)
+        }
+    }
+
+    private fun startModelDownload(model: com.example.ime.voice.RecommendedModel) {
+        llDownloadProgressCard.visibility = View.VISIBLE
+        tvDownloadProgressTitle.text = "Downloading ${model.name}..."
+        tvDownloadProgressDetail.text = "Starting download..."
+        pbModelDownload.isIndeterminate = false
+        pbModelDownload.progress = 0
+
+        Thread {
+            try {
+                var currentUrl = model.downloadUrl
+                var connection: java.net.HttpURLConnection
+                var redirects = 0
+                while (true) {
+                    val url = java.net.URL(currentUrl)
+                    connection = url.openConnection() as java.net.HttpURLConnection
+                    connection.instanceFollowRedirects = false
+                    connection.connectTimeout = 15000
+                    connection.readTimeout = 30000
+                    val responseCode = connection.responseCode
+                    if (responseCode in 300..399) {
+                        val newUrl = connection.getHeaderField("Location")
+                        if (newUrl.isNullOrEmpty() || redirects >= 5) {
+                            throw Exception("Too many redirects or missing Location header")
+                        }
+                        currentUrl = newUrl
+                        redirects++
+                        connection.disconnect()
+                    } else if (responseCode == 200) {
+                        break
+                    } else {
+                        throw Exception("HTTP Error: $responseCode ${connection.responseMessage}")
+                    }
+                }
+
+                val totalLength = connection.contentLength
+                val tempFile = java.io.File(cacheDir, "download_${System.currentTimeMillis()}.bin")
+
+                connection.inputStream.use { input ->
+                    java.io.FileOutputStream(tempFile).use { output ->
+                        val buffer = ByteArray(64 * 1024)
+                        var bytesRead: Int
+                        var totalRead = 0L
+
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            output.write(buffer, 0, bytesRead)
+                            totalRead += bytesRead
+                            if (totalLength > 0) {
+                                val progress = ((totalRead * 100) / totalLength).toInt()
+                                val progressMb = totalRead / (1024 * 1024)
+                                val totalMb = totalLength / (1024 * 1024)
+                                runOnUiThread {
+                                    pbModelDownload.progress = progress
+                                    tvDownloadProgressDetail.text = "$progressMb MB / $totalMb MB ($progress%)"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                runOnUiThread {
+                    tvDownloadProgressDetail.text = "Validating and installing model..."
+                }
+
+                val installResult = VoiceModelManager.installDownloadedFile(this, tempFile, model.name)
+
+                runOnUiThread {
+                    llDownloadProgressCard.visibility = View.GONE
+                    if (installResult.isSuccess) {
+                        Toast.makeText(this, "${model.name} installed successfully!", Toast.LENGTH_LONG).show()
+                        refreshModelCard()
+                    } else {
+                        val err = installResult.exceptionOrNull()?.message ?: "Installation failed"
+                        AlertDialog.Builder(this)
+                            .setTitle("Install Failed")
+                            .setMessage(err)
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    llDownloadProgressCard.visibility = View.GONE
+                    AlertDialog.Builder(this)
+                        .setTitle("Download Failed")
+                        .setMessage(e.message ?: "Network error downloading model")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        }.start()
     }
 }

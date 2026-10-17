@@ -15,6 +15,7 @@ object VoiceIpcProtocol {
     const val CMD_SET_GAIN = 7
     const val CMD_SET_TEMPERATURE = 8
     const val CMD_FORCE_RELEASE = 9
+    const val CMD_RELOAD_MODEL = 10
 
     // Service -> Client Events
     const val EVENT_STATE_CHANGED = 101

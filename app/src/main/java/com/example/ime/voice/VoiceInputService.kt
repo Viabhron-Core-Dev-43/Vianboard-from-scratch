@@ -23,6 +23,7 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
 
     companion object {
         private const val TAG = "VoiceInputService"
+        const val ACTION_RELOAD_MODEL = "com.example.ime.voice.ACTION_RELOAD_MODEL"
         private const val IDLE_AUTO_SHUTDOWN_MS = 60_000L // 60 seconds of inactivity
         private const val MIN_SPEECH_SAMPLES = 8_000 // 0.5s at 16kHz
         private const val MAX_SPEECH_SAMPLES = 480_000 // 30s at 16kHz
@@ -56,6 +57,15 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
         LogKeeper.logEvent(TAG, "VoiceInputService created in isolated process: ${android.os.Process.myPid()}")
         audioPipeline = AudioRecordPipeline(this, this)
         resetIdleTimeout()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_RELOAD_MODEL) {
+            LogKeeper.logEvent(TAG, "ACTION_RELOAD_MODEL received via startService")
+            whisperEngine.release()
+            loadActiveModel()
+        }
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -134,6 +144,11 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
             VoiceIpcProtocol.CMD_FORCE_RELEASE -> {
                 releaseAudioPipeline()
                 stopSelf()
+            }
+            VoiceIpcProtocol.CMD_RELOAD_MODEL -> {
+                LogKeeper.logEvent(TAG, "CMD_RELOAD_MODEL received via IPC; reloading active model")
+                whisperEngine.release()
+                loadActiveModel()
             }
             else -> return false
         }
@@ -259,7 +274,16 @@ class VoiceInputService : Service(), AudioRecordPipeline.AudioPipelineListener {
     // --- Inference Dispatch ---
 
     private fun triggerStreamingInference(isFinalPass: Boolean) {
-        if (!whisperEngine.isModelLoaded) return
+        if (!whisperEngine.isModelLoaded) {
+            if (!WhisperEngine.isNativeAvailable()) {
+                sendErrorToClient("Native Whisper engine (libwhisper.so) required. Build APK via GitHub Actions.")
+            } else if (!VoiceModelManager.hasActiveModel(this)) {
+                sendErrorToClient("No voice model installed. Import a model in Voice Settings.")
+            } else {
+                loadActiveModel()
+            }
+            return
+        }
         if (isTranscribing.getAndSet(true)) return
 
         val samplesCopy: FloatArray

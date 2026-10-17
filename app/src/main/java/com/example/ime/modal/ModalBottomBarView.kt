@@ -98,7 +98,7 @@ class ModalBottomBarView @JvmOverloads constructor(
         // HeliBoard Rounded Base Border bevel colors
         keyBevelPaint.color = theme.keyBottomBevelColor
         actionKeyBevelPaint.color = theme.actionKeyBevelColor
-        enterKeyBevelPaint.color = 0xFF263238.toInt()
+        enterKeyBevelPaint.color = theme.enterKeyBevelColor
         pressedPaint.color = theme.pressedKeyColor
 
         textPaint.color = theme.textColor
@@ -118,7 +118,9 @@ class ModalBottomBarView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val density = resources.displayMetrics.density
-        val desiredHeight = (theme.keyHeightDp * density + theme.verticalGapDp * density).toInt()
+        val vertGap = theme.verticalGapDp * density / 2f
+        val paddingBottom = com.example.ime.keyboard.KeyboardGeometry.HELIBOARD_PADDING_BOTTOM_DP * density
+        val desiredHeight = (theme.keyHeightDp * density + vertGap + paddingBottom).toInt()
         val width = MeasureSpec.getSize(widthMeasureSpec)
         setMeasuredDimension(width, resolveSize(desiredHeight, heightMeasureSpec))
     }
@@ -132,10 +134,10 @@ class ModalBottomBarView @JvmOverloads constructor(
         val density = resources.displayMetrics.density
         val horizGap = theme.horizontalGapDp * density
         val vertGap = theme.verticalGapDp * density / 2f
-        val sidePadding = horizGap
+        val sidePadding = com.example.ime.keyboard.KeyboardGeometry.HELIBOARD_PADDING_DP * density
 
         val availableW = w - sidePadding * 2f
-        val keyHeight = h - vertGap * 2f
+        val keyHeight = theme.keyHeightDp * density
         val topY = vertGap
         val botY = topY + keyHeight
 
@@ -172,18 +174,20 @@ class ModalBottomBarView @JvmOverloads constructor(
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
 
         val density = resources.displayMetrics.density
-        val cornerRadius = theme.keyCornerRadiusDp * density
+        val normalRadius = theme.keyCornerRadiusDp * density
 
-        // 1. Render [ ABC ] keycap
-        drawKeycap(canvas, abcRect, actionKeyPaint, actionKeyBevelPaint, cornerRadius, pressedIndex == 0)
+        // 1. Render [ ABC ] keycap (pill curvature matching special keys)
+        val abcRadius = (24f * density).coerceAtMost(minOf(abcRect.width(), abcRect.height()) / 2f)
+        drawKeycap(canvas, abcRect, actionKeyPaint, actionKeyBevelPaint, abcRadius, pressedIndex == 0)
         val abcBaseline = abcRect.centerY() - (textPaint.descent() + textPaint.ascent()) / 2f
         canvas.drawText("ABC", abcRect.centerX(), abcBaseline, textPaint)
 
-        // 2. Render [ Space ] clean unbordered keycap (No text, no stroke outline)
-        drawKeycap(canvas, spaceRect, keyBgPaint, keyBevelPaint, cornerRadius, pressedIndex == 1)
+        // 2. Render [ Space ] clean unbordered keycap (10dp squircle curvature matching alphanumeric keys)
+        drawKeycap(canvas, spaceRect, keyBgPaint, keyBevelPaint, normalRadius, pressedIndex == 1)
 
-        // 3. Render [ ⌫ Backspace ] keycap
-        drawKeycap(canvas, deleteRect, actionKeyPaint, actionKeyBevelPaint, cornerRadius, pressedIndex == 2)
+        // 3. Render [ ⌫ Backspace ] keycap (pill curvature matching special keys)
+        val delRadius = (24f * density).coerceAtMost(minOf(deleteRect.width(), deleteRect.height()) / 2f)
+        drawKeycap(canvas, deleteRect, actionKeyPaint, actionKeyBevelPaint, delRadius, pressedIndex == 2)
         deleteIcon?.let { icon ->
             val iconSize = (22f * density).toInt()
             val left = (deleteRect.centerX() - iconSize / 2f).toInt()
@@ -192,8 +196,9 @@ class ModalBottomBarView @JvmOverloads constructor(
             icon.draw(canvas)
         }
 
-        // 4. Render [ ↵ Enter ] keycap with smiley corner hint
-        drawKeycap(canvas, enterRect, enterKeyPaint, enterKeyBevelPaint, cornerRadius, pressedIndex == 3)
+        // 4. Render [ ↵ Enter ] keycap (pill curvature matching special keys, with corner hint)
+        val enterRadius = (24f * density).coerceAtMost(minOf(enterRect.width(), enterRect.height()) / 2f)
+        drawKeycap(canvas, enterRect, enterKeyPaint, enterKeyBevelPaint, enterRadius, pressedIndex == 3)
         enterIcon?.let { icon ->
             val iconSize = (22f * density).toInt()
             val left = (enterRect.centerX() - iconSize / 2f).toInt()
@@ -202,16 +207,16 @@ class ModalBottomBarView @JvmOverloads constructor(
             icon.draw(canvas)
         }
         if (theme.showHints) {
-            val hintX = enterRect.right - (4f * density)
-            val hintY = enterRect.top + (12f * density)
+            val hintX = enterRect.right - (4.5f * density)
+            val hintY = enterRect.bottom - (4.5f * density)
             canvas.drawText("☺", hintX, hintY, hintPaint)
         }
     }
 
     /**
      * Tactile layered keycap rendering matching VianKeyboardView and HeliBoard:
-     * 1. 1dp bottom bevel layer
-     * 2. Top keycap surface inset at bottom by 1dp
+     * 1. 1.5dp bottom bevel layer
+     * 2. Top keycap surface inset at bottom by 1.5dp
      */
     private fun drawKeycap(
         canvas: Canvas,
@@ -222,7 +227,7 @@ class ModalBottomBarView @JvmOverloads constructor(
         isPressed: Boolean
     ) {
         val density = resources.displayMetrics.density
-        val bevelInsetBottomPx = 1.0f * density
+        val bevelInsetBottomPx = 1.5f * density
 
         if (isPressed) {
             canvas.drawRoundRect(bounds, cornerRadius, cornerRadius, pressedPaint)

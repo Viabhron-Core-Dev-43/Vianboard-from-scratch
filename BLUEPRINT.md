@@ -437,3 +437,57 @@ VianBoard is a fully customizable, privacy-conscious offline Android keyboard ap
   2. Workspace Optimization: Reduced overall workspace footprint from ~17.7 MB down to ~3.5 MB clean active code, completely eliminating duplicate classes and dead weight from repository export archives.
   3. Verification: Ran `compile_applet` (BUILD SUCCESSFUL) and local unit test suite via `gradle :app:testDebugUnitTest` (BUILD SUCCESSFUL in 1m 6s, 30 actionable tasks passing) confirming zero dependencies on the deleted reference folder.
   4. Security scan executed: Purged auto-generated `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.
+
+---
+
+### [2026-10-14 20:30:00 UTC] - Update: HeliBoard Visual Clone (Paddings, Bottom 4 Buttons, Modals & Pinned Toolbar Parity)
+- **Changes**:
+  1. `app/src/main/java/com/example/ime/keyboard/KeyboardGeometry.kt`: Added `HELIBOARD_PADDING_TOP_DP = 7.0f` (cushion between suggestion bar and number row) and `HELIBOARD_PADDING_BOTTOM_DP = 8.0f` (padding above Android bottom navigation bar); applied to `keyboardStartY` and `availableKeyboardHeight`.
+  2. `app/src/main/java/com/example/ime/keyboard/VianKeyboardView.kt`: Updated `onMeasure` to include `paddingTopPx` (7dp) and `paddingBottomPx` (8dp), maintaining constant 50dp key heights while providing breathing space above number row and before navigation bar.
+  3. `app/src/main/java/com/example/ime/toolbar/ToolbarPreferences.kt`: Updated default pinned toolbar tools to `[ SELECT_WORD, COPY, PASTE ]`; migrated legacy `CLIPBOARD` tool to `PASTE`. Verified `hidePinnedWhenExpanded = true` by default.
+  4. `app/src/main/java/com/example/ime/modal/ModalBottomBarView.kt`: Aligned bottom 4 buttons (`[ ABC ] [ Space ] [ ⌫ Backspace ] [ ↵ Enter ]`) to 1-to-1 HeliBoard visual clone: applied 24dp pill curvature to ABC, Delete, and Enter while maintaining 10dp squircle curvature on Space; set 1.5dp bottom bevel depth; incorporated 8dp bottom padding before navigation insets.
+  5. `app/src/main/res/layout/view_card_modal.xml`: Aligned clipboard and prompt list modal editing toolbar (`speedIslandBar`) to 40dp height (identical to suggestion bar), 36dp x 36dp control buttons with 8dp padding (20dp centered vector icons), 4dp button spacing, 3dp side margins, 24dp hairline divider, and `@color/key_text_color_lxx_light` (`#37474F`) slate tint.
+  6. `app/src/main/res/layout/view_emoji_modal.xml` & `view_desktop_shortcuts_modal.xml`: Aligned top toolbar strip height to uniform 40dp.
+  7. `app/src/main/java/com/example/ime/cards/VianCardModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar`.
+  8. `app/src/main/java/com/example/ime/VianBoardService.kt`: Updated input container background color from black to `KeyboardTheme.backgroundColor` for seamless edge-to-edge navigation bar blending.
+  9. Security scan executed: Purged `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.
+
+---
+
+### [2026-10-14 21:10:00 UTC] - Update: All Modals HeliBoard Styling & Theming Parity
+- **Changes**:
+  1. `app/src/main/res/layout/view_desktop_shortcuts_modal.xml`: Replaced hardcoded `#0F172A` with `@color/key_text_color_lxx_light` across all top toolbar action buttons, 7 action cards, and 5 D-Pad buttons; set 8dp padding on toolbar controls for 20dp vector icon geometry identical to main suggestion bar and card modals.
+  2. `app/src/main/java/com/example/ime/desktop/VianDesktopShortcutsModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar.reloadTheme()`.
+  3. `app/src/main/java/com/example/ime/emoji/VianEmojiModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar.reloadTheme()`; updated selected category pill icon tint to `R.color.key_text_color_lxx_light`.
+  4. `app/src/main/java/com/example/ime/voice/VianVoiceModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar.reloadTheme()`.
+  5. `app/src/main/res/layout/view_voice_modal.xml`: Updated quick settings icon tint from `#475569` to `@color/key_text_color_lxx_light`.
+  6. `app/src/main/res/layout/item_text_card.xml`: Updated `tvCardText` color to `@color/key_text_color_lxx_light` (`#37474F`).
+  7. `app/src/main/res/layout/view_card_modal.xml`: Updated `etSearchFilter` text color to `@color/key_text_color_lxx_light`.
+  8. `app/src/main/java/com/example/ime/VianBoardService.kt`: Connected dynamic theme reloads in `onStartInputView` across all active modal types (`VianCardModalView`, `VianEmojiModalView`, `VianVoiceModalView`, `VianDesktopShortcutsModalView`).
+  9. Verification: Ran `compile_applet` (BUILD SUCCESSFUL) and local unit test suite via `gradle :app:testDebugUnitTest`.
+  10. Security scan executed: Purged auto-generated `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.
+
+---
+
+### [2026-10-14 21:30:00 UTC] - Update: Voice Model Import Resolution & Endianness Parity
+- **Changes**:
+  1. `app/src/main/java/com/example/ime/voice/VoiceModelManager.kt`: Fixed critical model import bug where standard Little-Endian GGML files (`0x6c, 0x6d, 0x67, 0x67` / `lmgg`) were rejected by inverted Big-Endian check. Added support for Little-Endian and Big-Endian byte patterns for GGML (`0x67676d6c`), GGMF (`0x67676d66`), GGJT (`0x67676a74`), and GGUF (`0x47475546`).
+  2. Fallback Validation: Added permissive file size check ($\ge 5\,\text{MB}$) allowing `whisper.cpp` native context initializer to directly validate internal tensor structures instead of prematurely deleting valid imported Whisper models.
+  3. Stream & Permission Hardening: Added `takePersistableUriPermission` safeguard and detailed error reporting with hex and ASCII magic string logging on import failures.
+  4. `.github/workflows/build-apk.yml`: Fortified NDK directory resolution in GitHub Actions CI using `$ANDROID_NDK_LATEST_HOME`, `$ANDROID_NDK_HOME`, and `$ANDROID_NDK_ROOT` fallbacks for reliable multi-ABI `libwhisper.so` builds (`arm64-v8a`, `armeabi-v7a`, `x86_64`).
+  5. Security scan executed: Purged `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.
+
+---
+
+### [2026-10-17 18:05:00 UTC] - Update: Voice Input Engine Parity, Multi-Process Synchronization & Direct Model Import
+- **Changes**:
+  1. `app/src/main/AndroidManifest.xml`: Declared `android.permission.INTERNET` for downloading offline models; added `<intent-filter>` for `ACTION_VIEW` (`*/*`, `application/octet-stream`, `.*\.bin`) on `VoiceInputSettingsActivity` allowing external file managers, browsers, and notifications to open downloaded models directly into VianBoard.
+  2. `app/src/main/java/com/example/ime/voice/VoiceIpcProtocol.kt`: Added `CMD_RELOAD_MODEL = 10` for hot-swapping voice models across the process boundary.
+  3. `app/src/main/java/com/example/ime/voice/VoiceModelManager.kt`: Added `installDownloadedFile` for direct installation from HTTP downloads; added `notifyVoiceService` dispatching `ACTION_RELOAD_MODEL` to `:voice` service whenever a model is imported, downloaded, or deleted; lowered header fallback size threshold from 5 MB to 1 MB.
+  4. `app/src/main/java/com/example/ime/voice/VoiceInputService.kt`: Added `ACTION_RELOAD_MODEL` handling in `onStartCommand` and `CMD_RELOAD_MODEL` in IPC message handler; added transparent client error reporting when native library or model is missing in `triggerStreamingInference`.
+  5. `app/src/main/java/com/example/ime/voice/VoiceInputConnection.kt`: Added `reloadModel()` API.
+  6. `app/src/main/res/layout/activity_voice_input_settings.xml`: Added "Recommended Models" card containing download progress bar and status text.
+  7. `app/src/main/java/com/example/ime/settings/VoiceInputSettingsActivity.kt`: Added `initRecommendedModelsViews()` rendering FUTO Whisper Tiny ACFT (~75MB), FUTO Whisper Base ACFT (~142MB), and Multilingual (~151MB); implemented `startModelDownload` streaming directly from Hugging Face with redirect following and progress reporting; implemented `handleIncomingModelIntent` to automatically import models opened via `ACTION_VIEW`.
+  8. `app/src/test/java/com/example/ime/voice/VoiceEngineTest.kt`: Added unit test suite covering Whisper clean output, n-gram repetition loop collapsing, phantom silence filtering, header magic validation, and size formatting.
+  9. Security scan executed: Purged `debug.keystore`, `debug.keystore.base64`, and `.build-outputs/app-debug.apk` per Mandates 2 and 3.
+

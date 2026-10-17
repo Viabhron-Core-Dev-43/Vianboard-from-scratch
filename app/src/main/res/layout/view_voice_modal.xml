@@ -74,7 +74,7 @@
             android:contentDescription="Voice Settings"
             android:scaleType="fitCenter"
             android:padding="5dp"
-            android:tint="#475569"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_settings" />
     </LinearLayout>
 

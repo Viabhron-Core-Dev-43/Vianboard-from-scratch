@@ -383,3 +383,95 @@
 - **Any deviation from what was requested, and why**: None. Followed exact user command.
 - **Known issue or follow-up needed**: Ready for export and on-device testing.
 
+---
+
+### [2026-10-14 20:30:00 UTC] - Receipt Entry 032: HeliBoard Visual Clone (Paddings, Bottom 4 Buttons, Modals & Pinned Toolbar Parity)
+- **One-line summary**: Synchronized HeliBoard theme geometry defaults, added vertical breathing paddings (7dp between suggestion bar & number row, 8dp before navigation bar), aligned ModalBottomBarView (24dp pill curvature on ABC, Delete, Enter; 10dp squircle on Space; 1.5dp bevel), matched modal toolbar height (40dp) and icons, and pinned [SELECT_WORD, COPY, PASTE] with auto-hide when expanded.
+- **Exact files touched**:
+  * `app/src/main/java/com/example/ime/keyboard/KeyboardGeometry.kt`
+  * `app/src/main/java/com/example/ime/keyboard/VianKeyboardView.kt`
+  * `app/src/main/java/com/example/ime/toolbar/ToolbarPreferences.kt`
+  * `app/src/main/java/com/example/ime/modal/ModalBottomBarView.kt`
+  * `app/src/main/res/layout/view_card_modal.xml`
+  * `app/src/main/res/layout/view_emoji_modal.xml`
+  * `app/src/main/res/layout/view_desktop_shortcuts_modal.xml`
+  * `app/src/main/java/com/example/ime/cards/VianCardModalView.kt`
+  * `app/src/main/java/com/example/ime/VianBoardService.kt`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. In `KeyboardGeometry.kt`: Added `HELIBOARD_PADDING_TOP_DP = 7.0f` and `HELIBOARD_PADDING_BOTTOM_DP = 8.0f`. Applied these to `keyboardStartY` and `availableKeyboardHeight` so key heights remain exactly `keyHeightDp = 50f` with clean vertical spacing above number row and before navigation bar.
+  2. In `VianKeyboardView.kt`: Updated `onMeasure` to include `paddingTopPx` (7dp) and `paddingBottomPx` (8dp) into `totalCalculatedHeight`.
+  3. In `ToolbarPreferences.kt`: Updated default pinned toolbar tools to `[ SELECT_WORD, COPY, PASTE ]` with automatic upgrade of legacy `CLIPBOARD` entries to `PASTE`. Verified `hidePinnedWhenExpanded = true` by default so expanded toolbar hides pinned tools and spans full width.
+  4. In `ModalBottomBarView.kt`: Replaced uniform 10dp radius with differentiated corner radii matching the main keyboard: 24dp pill curvature for ABC, Delete, and Enter, and 10dp squircle curvature for Space. Updated bevel depth to 1.5dp matching `VianKeyboardView`, and incorporated 8dp bottom padding before navigation bar.
+  5. In `view_card_modal.xml`: Updated modal toolbar (`speedIslandBar`) height from 36dp to 40dp (matching suggestion bar), resized buttons to 36dp x 36dp with 8dp padding (for 20dp vector icons), set 4dp spacing, 3dp side margins, 24dp hairline divider, and tinted icons with `@color/key_text_color_lxx_light` (`#37474F`).
+  6. In `view_emoji_modal.xml` and `view_desktop_shortcuts_modal.xml`: Updated top toolbar height to uniform 40dp.
+  7. In `VianCardModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar.reloadTheme()`.
+  8. In `VianBoardService.kt`: Updated input container background color from black to `KeyboardTheme.backgroundColor` for seamless navigation bar blending.
+  9. Executed security scan and strictly purged build-generated keystores and test APK binaries per Mandates 2 and 3.
+- **How it was verified**:
+  - Local build verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Test suite verified via `gradle :app:testDebugUnitTest`.
+  - Security scan verified clean: 0 keystores, 0 base64 files, 0 apk binaries.
+- **Any deviation from what was requested, and why**: None. Followed every requested detail with zero deviation.
+- **Known issue or follow-up needed**: None. Workspace is stable and verified.
+
+---
+
+### [2026-10-14 21:10:00 UTC] - Receipt Entry 033: All Modals HeliBoard Styling & Theming Parity
+- **One-line summary**: Synchronized HeliBoard styling, icon dimensions, and palette across all modals (Desktop Shortcuts, Emoji, Voice, and Cards), added `reloadTheme()` lifecycle hooks, and aligned toolbar control padding to 8dp (20dp icons).
+- **Exact files touched**:
+  * `app/src/main/res/layout/view_desktop_shortcuts_modal.xml`
+  * `app/src/main/java/com/example/ime/desktop/VianDesktopShortcutsModalView.kt`
+  * `app/src/main/java/com/example/ime/emoji/VianEmojiModalView.kt`
+  * `app/src/main/java/com/example/ime/voice/VianVoiceModalView.kt`
+  * `app/src/main/res/layout/view_voice_modal.xml`
+  * `app/src/main/res/layout/item_text_card.xml`
+  * `app/src/main/res/layout/view_card_modal.xml`
+  * `app/src/main/java/com/example/ime/VianBoardService.kt`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. In `view_desktop_shortcuts_modal.xml`: Replaced hardcoded `#0F172A` with `@color/key_text_color_lxx_light` across top toolbar action buttons, 7 action cards, and 5 D-Pad buttons; updated top toolbar buttons to 8dp padding matching the 20dp vector icon geometry of the suggestion bar and card modals.
+  2. In `VianDesktopShortcutsModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar.reloadTheme()`.
+  3. In `VianEmojiModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar.reloadTheme()`; updated selected category pill icon tint to `R.color.key_text_color_lxx_light`.
+  4. In `VianVoiceModalView.kt`: Added `reloadTheme()` delegating to `modalBottomBar.reloadTheme()`.
+  5. In `view_voice_modal.xml`: Updated quick settings icon tint from `#475569` to `@color/key_text_color_lxx_light`.
+  6. In `item_text_card.xml`: Updated `tvCardText` color to `@color/key_text_color_lxx_light` (`#37474F`).
+  7. In `view_card_modal.xml`: Updated `etSearchFilter` text color to `@color/key_text_color_lxx_light`.
+  8. In `VianBoardService.kt`: Connected dynamic theme reloads in `onStartInputView` across all active modal types (`VianCardModalView`, `VianEmojiModalView`, `VianVoiceModalView`, `VianDesktopShortcutsModalView`).
+  9. Executed security scan and strictly purged build-generated keystores and test APK binaries per Mandates 2 and 3.
+- **How it was verified**:
+  - Local build verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Test suite verified via `gradle :app:testDebugUnitTest`.
+  - Security scan verified clean: 0 keystores, 0 base64 files, 0 apk binaries.
+- **Any deviation from what was requested, and why**: None. Followed exact user command.
+- **Known issue or follow-up needed**: None. Workspace is stable and verified.
+
+---
+
+### [2026-10-14 21:30:00 UTC] - Receipt Entry 034: Voice Model Import Resolution & Endianness Parity
+- **One-line summary**: Fixed critical model import false-positive rejection by adding little-endian/big-endian magic byte detection (`GGML`, `GGMF`, `GGJT`, `GGUF`) with $\ge 5\,\text{MB}$ file fallback and hardened CI NDK resolution.
+- **Exact files touched**:
+  * `app/src/main/java/com/example/ime/voice/VoiceModelManager.kt`
+  * `.github/workflows/build-apk.yml`
+  * `BLUEPRINT.md`
+  * `receipts/RECEIPTS_007.md`
+- **What was actually done**:
+  1. In `VoiceModelManager.kt`: Replaced single big-endian byte array checks with dual little-endian (`0x6c, 0x6d, 0x67, 0x67` / `lmgg`) and big-endian representations for `GGML_MAGIC`, `GGMF_MAGIC`, `GGJT_MAGIC`, and `GGUF_MAGIC`.
+  2. In `VoiceModelManager.isValidModelHeader`: Added fallback accepting any file $\ge 5\,\text{MB}$ so native `whisper.cpp` can validate model tensors directly without premature deletion in Kotlin.
+  3. In `VoiceModelManager.importModelFromUri`: Added `takePersistableUriPermission` safeguard and detailed error messages logging exact hex and ASCII header bytes on failure.
+  4. In `.github/workflows/build-apk.yml`: Added fallback resolution for `$ANDROID_NDK_LATEST_HOME`, `$ANDROID_NDK_HOME`, and `$ANDROID_NDK_ROOT` to guarantee `libwhisper.so` builds across all target ABIs in GitHub Actions.
+  5. Executed silent security scan and purged build-generated keystores and test APK binaries per Mandates 2 and 3.
+- **How it was verified**:
+  - Local build verified via `compile_applet` (BUILD SUCCESSFUL).
+  - Security scan verified clean: 0 keystores, 0 base64 files, 0 apk binaries.
+- **Any deviation from what was requested, and why**: None. Followed exact user command.
+- **Known issue or follow-up needed**: Native inference requires building the APK via GitHub Actions to generate `libwhisper.so`. Offline models can now be imported via SAF document picker without header rejection.
+
+---
+*RECEIPTS_007.md closed at 475 lines per 500-line cap mandate. Audit trail continued in RECEIPTS_008.md.*
+
+
+
+

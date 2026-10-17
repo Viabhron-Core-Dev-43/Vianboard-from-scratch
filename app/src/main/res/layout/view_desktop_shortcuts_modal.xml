@@ -5,11 +5,11 @@
     android:background="@color/keyboard_canvas_background"
     android:orientation="vertical">
 
-    <!-- Top Suggestion Bar Strip: Only Toolbar with Common Desktop Tools (~30dp) -->
+    <!-- Top Suggestion Bar Strip: Only Toolbar with Common Desktop Tools (40dp HeliBoard parity) -->
     <LinearLayout
         android:id="@+id/desktopToolbar"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="40dp"
         android:background="@color/keyboard_canvas_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -24,8 +24,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Undo (Ctrl+Z)"
             android:scaleType="fitCenter"
-            android:padding="5dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_undo" />
 
         <!-- Redo (Desktop Ctrl+Y) -->
@@ -37,8 +37,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Redo (Ctrl+Y)"
             android:scaleType="fitCenter"
-            android:padding="5dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_redo" />
 
         <!-- Top of Document (Desktop Ctrl+Home) -->
@@ -50,8 +50,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Top of Document (Ctrl+Home)"
             android:scaleType="fitCenter"
-            android:padding="5dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_page_start" />
 
         <!-- Bottom of Document (Desktop Ctrl+End) -->
@@ -63,8 +63,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Bottom of Document (Ctrl+End)"
             android:scaleType="fitCenter"
-            android:padding="5dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_page_end" />
 
         <!-- Pinned: Select Word (Tap: Select Word, Long Press: Select All) -->
@@ -76,8 +76,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Select Word (Long Press: Select All)"
             android:scaleType="fitCenter"
-            android:padding="5dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_select_word" />
 
         <!-- Pinned: Copy (Tap: Copy, Long Press: Prompt List) -->
@@ -89,8 +89,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Copy (Long Press: Prompt List)"
             android:scaleType="fitCenter"
-            android:padding="5dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_copy" />
 
         <!-- Pinned: Paste (Tap: Paste, Long Press: Clipboard) -->
@@ -102,8 +102,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Paste (Long Press: Clipboard History)"
             android:scaleType="fitCenter"
-            android:padding="5dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_paste" />
 
         <!-- Close / Dismiss to Alpha -->
@@ -115,8 +115,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Close Shortcuts"
             android:scaleType="fitCenter"
-            android:padding="6dp"
-            android:tint="#0F172A"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_close" />
     </LinearLayout>
 
@@ -164,7 +164,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Find"
-                        android:textColor="#0F172A"
+                        android:textColor="@color/key_text_color_lxx_light"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -196,7 +196,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Replace"
-                        android:textColor="#0F172A"
+                        android:textColor="@color/key_text_color_lxx_light"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -227,7 +227,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Save"
-                        android:textColor="#0F172A"
+                        android:textColor="@color/key_text_color_lxx_light"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -269,7 +269,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Comment"
-                        android:textColor="#0F172A"
+                        android:textColor="@color/key_text_color_lxx_light"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -300,7 +300,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Duplicate"
-                        android:textColor="#0F172A"
+                        android:textColor="@color/key_text_color_lxx_light"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -341,7 +341,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Indent"
-                        android:textColor="#0F172A"
+                        android:textColor="@color/key_text_color_lxx_light"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -372,7 +372,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Outdent"
-                        android:textColor="#0F172A"
+                        android:textColor="@color/key_text_color_lxx_light"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -414,7 +414,7 @@
                     android:contentDescription="Arrow Up"
                     android:scaleType="fitCenter"
                     android:padding="8dp"
-                    android:tint="#0F172A"
+                    android:tint="@color/key_text_color_lxx_light"
                     android:src="@drawable/ic_arrow_up" />
             </LinearLayout>
 
@@ -436,7 +436,7 @@
                     android:contentDescription="Arrow Left"
                     android:scaleType="fitCenter"
                     android:padding="8dp"
-                    android:tint="#0F172A"
+                    android:tint="@color/key_text_color_lxx_light"
                     android:src="@drawable/ic_arrow_left"
                     android:layout_marginEnd="3dp" />
 
@@ -449,7 +449,7 @@
                     android:contentDescription="Home (Line Start)"
                     android:scaleType="fitCenter"
                     android:padding="8dp"
-                    android:tint="#0F172A"
+                    android:tint="@color/key_text_color_lxx_light"
                     android:src="@drawable/ic_home"
                     android:layout_marginEnd="3dp" />
 
@@ -462,7 +462,7 @@
                     android:contentDescription="Arrow Right"
                     android:scaleType="fitCenter"
                     android:padding="8dp"
-                    android:tint="#0F172A"
+                    android:tint="@color/key_text_color_lxx_light"
                     android:src="@drawable/ic_arrow_right" />
             </LinearLayout>
 
@@ -481,7 +481,7 @@
                     android:contentDescription="Arrow Down"
                     android:scaleType="fitCenter"
                     android:padding="8dp"
-                    android:tint="#0F172A"
+                    android:tint="@color/key_text_color_lxx_light"
                     android:src="@drawable/ic_arrow_down" />
             </LinearLayout>
         </LinearLayout>

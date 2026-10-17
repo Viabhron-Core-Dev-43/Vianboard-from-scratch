@@ -18,9 +18,15 @@ class ToolbarPreferences(context: Context) {
     fun getPinnedTools(): List<ToolbarTool> {
         val saved = prefs.getString(KEY_PINNED_TOOLS, null)
         if (saved.isNullOrEmpty()) {
-            return listOf(ToolbarTool.SELECT_ALL, ToolbarTool.COPY, ToolbarTool.CLIPBOARD)
+            return listOf(ToolbarTool.SELECT_WORD, ToolbarTool.COPY, ToolbarTool.PASTE)
         }
-        return saved.split(",").mapNotNull { ToolbarTool.fromId(it.trim()) }
+        val list = saved.split(",").mapNotNull { ToolbarTool.fromId(it.trim()) }
+        // If saved list contains legacy CLIPBOARD instead of PASTE, upgrade to PASTE
+        return if (list.contains(ToolbarTool.CLIPBOARD) && !list.contains(ToolbarTool.PASTE)) {
+            list.map { if (it == ToolbarTool.CLIPBOARD) ToolbarTool.PASTE else it }
+        } else {
+            list
+        }
     }
 
     fun setPinnedTools(tools: List<ToolbarTool>) {

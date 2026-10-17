@@ -28,6 +28,6 @@
         android:ellipsize="end"
         android:maxLines="4"
         android:lineSpacingMultiplier="1.15"
-        android:textColor="#0F172A"
+        android:textColor="@color/key_text_color_lxx_light"
         android:textSize="13sp" />
 </LinearLayout>

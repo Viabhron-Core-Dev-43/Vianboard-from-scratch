@@ -165,4 +165,8 @@ class VianDesktopShortcutsModalView @JvmOverloads constructor(
             }
         }
     }
+
+    fun reloadTheme() {
+        modalBottomBar.reloadTheme()
+    }
 }

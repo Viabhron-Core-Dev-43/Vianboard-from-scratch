@@ -5,157 +5,159 @@
     android:background="@color/keyboard_canvas_background"
     android:orientation="vertical">
 
-    <!-- Speed Island Header / Editing Toolbar -->
+    <!-- Speed Island Header / Editing Toolbar (1-to-1 HeliBoard toolbar geometry: 40dp height, 36dp buttons, 20dp icons) -->
     <LinearLayout
         android:id="@+id/speedIslandBar"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="40dp"
         android:background="@color/keyboard_canvas_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="4dp">
+        android:paddingStart="3dp"
+        android:paddingEnd="3dp">
 
         <!-- Collapse / Return Chevron matching HeliBoard modal header -->
         <ImageButton
             android:id="@+id/btnDismissToAlpha"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Return to Keyboard"
             android:scaleType="fitCenter"
-            android:padding="6dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_chevron_up" />
 
         <!-- Cursor Navigation Arrows -->
         <ImageButton
             android:id="@+id/btnNavLeft"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Cursor Left"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_arrow_left" />
 
         <ImageButton
             android:id="@+id/btnNavRight"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Cursor Right"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_arrow_right" />
 
         <ImageButton
             android:id="@+id/btnNavUp"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Cursor Up"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_arrow_up" />
 
         <ImageButton
             android:id="@+id/btnNavDown"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Cursor Down"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_arrow_down" />
 
         <View
             android:layout_width="1dp"
-            android:layout_height="16dp"
-            android:layout_marginEnd="6dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="4dp"
             android:background="@color/toolbar_divider_color" />
 
         <!-- Add Card button (Prompt List mode shortcut) -->
         <ImageButton
             android:id="@+id/btnAddCard"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Add Note"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_add"
             android:visibility="gone" />
 
         <!-- Editing Tools -->
         <ImageButton
             android:id="@+id/btnSelectAll"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Select All"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_select_all" />
 
         <ImageButton
             android:id="@+id/btnCut"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Cut"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_cut" />
 
         <ImageButton
             android:id="@+id/btnCopy"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Copy"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/sym_keyboard_copy_rounded" />
 
         <ImageButton
             android:id="@+id/btnPaste"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Paste"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_paste" />
 
         <!-- Search Toggle Button -->
         <ImageButton
             android:id="@+id/btnToggleSearch"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Search filter"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_search" />
 
         <View
@@ -166,13 +168,13 @@
         <!-- Clear Unpinned Items Button -->
         <ImageButton
             android:id="@+id/btnClearAll"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Clear Unpinned"
             android:scaleType="fitCenter"
-            android:padding="7dp"
-            android:tint="#000000"
+            android:padding="8dp"
+            android:tint="@color/key_text_color_lxx_light"
             android:src="@drawable/ic_delete_sweep" />
     </LinearLayout>
 
@@ -204,7 +206,7 @@
             android:imeOptions="actionDone"
             android:inputType="text"
             android:maxLines="1"
-            android:textColor="#0F172A"
+            android:textColor="@color/key_text_color_lxx_light"
             android:textColorHint="#94A3B8"
             android:textSize="13sp" />
 

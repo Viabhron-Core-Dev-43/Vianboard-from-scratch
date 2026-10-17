@@ -147,6 +147,11 @@ class VoiceInputConnection(
         sendServiceMessage(msg)
     }
 
+    fun reloadModel() {
+        val msg = Message.obtain(null, VoiceIpcProtocol.CMD_RELOAD_MODEL)
+        sendServiceMessage(msg)
+    }
+
     private fun sendServiceMessage(msg: Message) {
         try {
             serviceMessenger?.send(msg)

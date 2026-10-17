@@ -107,6 +107,8 @@ class KeyboardGeometry(
         const val HELIBOARD_ICON_SIZE_DP = 20f
         const val HELIBOARD_SPACING_DP = 4f
         const val HELIBOARD_PADDING_DP = 3.0f
+        const val HELIBOARD_PADDING_TOP_DP = 7.0f       // Padding between suggestion bar and number row
+        const val HELIBOARD_PADDING_BOTTOM_DP = 8.0f    // Padding at bottom before navigation bar
 
         private fun rectF(left: Float, top: Float, right: Float, bottom: Float): RectF {
             val r = RectF()
@@ -139,7 +141,8 @@ class KeyboardGeometry(
             hidePinnedWhenExpanded: Boolean = true
         ): KeyboardGeometry {
             val paddingHPx = HELIBOARD_PADDING_DP * density
-            val paddingVPx = HELIBOARD_PADDING_DP * density
+            val paddingTopPx = HELIBOARD_PADDING_TOP_DP * density
+            val paddingBottomPx = HELIBOARD_PADDING_BOTTOM_DP * density
             val spacingPx = HELIBOARD_SPACING_DP * density
             val controlSizePx = HELIBOARD_CONTROL_SIZE_DP * density
             val toolbarHeightPx = theme.toolbarHeightDp * density
@@ -269,8 +272,8 @@ class KeyboardGeometry(
             // --- 2. Keyboard Grid Geometry ---
             val horizontalGapPx = theme.horizontalGapDp * density
             val verticalGapPx = theme.verticalGapDp * density
-            val keyboardStartY = toolbarBounds.bottom + paddingVPx
-            val availableKeyboardHeight = (height - keyboardStartY - paddingVPx - bottomInsetPx).coerceAtLeast(0f)
+            val keyboardStartY = toolbarBounds.bottom + paddingTopPx
+            val availableKeyboardHeight = (height - keyboardStartY - paddingBottomPx - bottomInsetPx).coerceAtLeast(0f)
             val keyboardBounds = rectF(paddingHPx, keyboardStartY, paddingHPx + availableWidth, keyboardStartY + availableKeyboardHeight)
 
             val rowCount = rowDefinitions.size.coerceAtLeast(1)

@@ -252,4 +252,8 @@ open class VianCardModalView @JvmOverloads constructor(
             adapter.updateData(items)
         }
     }
+
+    fun reloadTheme() {
+        modalBottomBar.reloadTheme()
+    }
 }

@@ -344,4 +344,8 @@ class VianVoiceModalView @JvmOverloads constructor(
         super.onDetachedFromWindow()
         stopVoiceInput()
     }
+
+    fun reloadTheme() {
+        modalBottomBar.reloadTheme()
+    }
 }

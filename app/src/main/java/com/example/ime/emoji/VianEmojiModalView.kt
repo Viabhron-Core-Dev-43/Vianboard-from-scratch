@@ -84,7 +84,7 @@ class VianEmojiModalView @JvmOverloads constructor(
             val isSelected = (i == index)
             if (isSelected) {
                 iconView.setBackgroundResource(R.drawable.bg_emoji_tab_pill_selected)
-                iconView.setColorFilter(0xFF0F172A.toInt())
+                iconView.setColorFilter(ContextCompat.getColor(context, R.color.key_text_color_lxx_light))
             } else {
                 iconView.background = null
                 iconView.setColorFilter(0xFF64748B.toInt())
@@ -101,5 +101,9 @@ class VianEmojiModalView @JvmOverloads constructor(
         modalBottomBar.onSpaceClick = { onEmojiCommit?.invoke(" ") }
         modalBottomBar.onDeleteClick = { onDelete?.invoke() }
         modalBottomBar.onEnterClick = { onEnter?.invoke() }
+    }
+
+    fun reloadTheme() {
+        modalBottomBar.reloadTheme()
     }
 }

@@ -5,11 +5,11 @@
     android:background="@color/keyboard_canvas_background"
     android:orientation="vertical">
 
-    <!-- Fixed Non-Scrolling Category Tab Strip (HeliBoard parity) -->
+    <!-- Fixed Non-Scrolling Category Tab Strip (HeliBoard parity: 40dp height) -->
     <LinearLayout
         android:id="@+id/llCategoryTabs"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="40dp"
         android:background="@color/keyboard_canvas_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"

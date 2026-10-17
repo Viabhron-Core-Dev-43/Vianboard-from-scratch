@@ -34,6 +34,7 @@ import com.example.ime.quicknotes.VianQuickNotesModalView
 import com.example.ime.voice.VianVoiceModalView
 import com.example.ime.keyboard.KeyData
 import com.example.ime.keyboard.KeyType
+import com.example.ime.keyboard.KeyboardTheme
 import com.example.ime.keyboard.VianKeyboardView
 import com.example.ime.settings.SettingsActivity
 import com.example.ime.toolbar.ToolbarPreferences
@@ -202,7 +203,7 @@ class VianBoardService : InputMethodService() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            setBackgroundColor(Color.BLACK)
+            setBackgroundColor(KeyboardTheme.loadFromPrefs(this@VianBoardService).backgroundColor)
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(container) { v, insets ->
@@ -264,8 +265,11 @@ class VianBoardService : InputMethodService() {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-        LogKeeper.logEvent("IME", "onStartInputView (restarting=$restarting)")
         keyboardView?.reloadTheme()
+        (activeModalView as? com.example.ime.cards.VianCardModalView)?.reloadTheme()
+        (activeModalView as? com.example.ime.emoji.VianEmojiModalView)?.reloadTheme()
+        (activeModalView as? com.example.ime.voice.VianVoiceModalView)?.reloadTheme()
+        (activeModalView as? com.example.ime.desktop.VianDesktopShortcutsModalView)?.reloadTheme()
 
         val textEnginePrefs = com.example.ime.engine.TextEnginePreferences(this)
         textEngineBridge.setLiteMode(textEnginePrefs.liteMode)
